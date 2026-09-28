@@ -1,0 +1,59 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - name: Verify plugin
+        run: ./mvnw -B -ntp clean verify
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: java-test-reports
+          path: target/surefire-reports/
+          retention-days: 7
+      - name: Upload development HPI
+        uses: actions/upload-artifact@v6
+        with:
+          name: octane-status-tracker-snapshot
+          path: target/octane-status-tracker.hpi
+          if-no-files-found: error
+          retention-days: 7
+  javascript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Chrome is available for browser regressions
+        run: google-chrome --version
+      - name: Run JavaScript and browser tests
+        run: node --test src/test/javascript/*.test.mjs

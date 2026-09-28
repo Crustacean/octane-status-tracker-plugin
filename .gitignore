@@ -1,0 +1,13 @@
+/target/
+/target-m2e/
+/work/
+/.idea/
+/.vscode/
+/.classpath
+/.project
+/.settings/
+*.iml
+*.log
+*.hpi
+*.jpi
+.DS_Store

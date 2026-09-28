@@ -1,0 +1,65 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="To" field="to">
+    <f:textbox placeholder="qa-team@example.com,dev-team@example.com" />
+  </f:entry>
+  <f:entry title="Cc" field="cc">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Bcc" field="bcc">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Subject" field="subject">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Project name" field="projectName">
+    <f:textbox placeholder="Business Payments Secure Checkout" />
+  </f:entry>
+  <f:entry title="Domain name" field="domainName">
+    <f:textbox placeholder="FS_TRIBE_DOMAIN" />
+  </f:entry>
+  <f:entry title="Body" field="body">
+    <f:textarea />
+  </f:entry>
+  <f:entry title="Print defect groups" field="printDefectGroups">
+    <f:checkbox default="false" />
+  </f:entry>
+  <f:entry title="Project summary" field="projectSummary">
+    <f:textarea />
+  </f:entry>
+  <f:entry title="Print project summary on interval emails" field="printProjectSummaryOnIntervalEmails">
+    <f:checkbox default="false" />
+  </f:entry>
+  <f:entry title="Print defects in email body" field="printDefectsOnEmailBody">
+    <f:checkbox default="false" />
+  </f:entry>
+  <f:entry title="Defect email filter" field="printDefectsOnEmailBodyFilter">
+    <f:textbox placeholder="major, Closed" />
+  </f:entry>
+  <f:entry title="Defect email row limit" field="printDefectsOnEmailBodyLimit">
+    <f:number min="0" default="0" />
+  </f:entry>
+  <f:entry title="From" field="from">
+    <f:textbox placeholder="authenticated-smtp-account@example.com" />
+  </f:entry>
+  <f:entry title="Reply-To" field="replyTo">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="On notification failure" field="onFailure">
+    <f:select />
+  </f:entry>
+  <f:advanced>
+    <f:entry title="Browser path" field="browserPath">
+      <f:textbox placeholder="/usr/bin/chromium" />
+    </f:entry>
+    <f:entry title="Screenshot theme" field="theme">
+      <f:select />
+    </f:entry>
+    <f:entry title="Viewport width" field="viewportWidth">
+      <f:number default="1400" />
+    </f:entry>
+    <f:entry title="Archive screenshot" field="archiveScreenshot">
+      <f:checkbox default="true" />
+    </f:entry>
+  </f:advanced>
+</j:jelly>

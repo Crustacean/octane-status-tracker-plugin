@@ -1,0 +1,5 @@
+<?jelly escape-by-default='true'?>
+<div>
+  Waits for an ALM Octane suite run to satisfy a gate before a Jenkins Pipeline or build step
+  continues.
+</div>

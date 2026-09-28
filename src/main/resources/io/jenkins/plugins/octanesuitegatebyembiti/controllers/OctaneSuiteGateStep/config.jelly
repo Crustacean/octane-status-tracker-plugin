@@ -1,0 +1,71 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+  <f:entry title="Octane connection ID" field="serverId">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Octane base URL" field="baseUrl">
+    <f:textbox placeholder="https://octane.example.com" />
+  </f:entry>
+  <f:entry title="API credential ID" field="credentialsId">
+    <f:textbox placeholder="octane-api-client" />
+  </f:entry>
+  <f:entry title="Regression suite run ID(s), Release, or Release and Sprint (optional)" field="suiteRunId">
+    <f:textbox placeholder="1196,1200" />
+  </f:entry>
+  <f:entry title="Shared space ID" field="sharedSpaceId">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Workspace ID" field="workspaceId">
+    <f:textbox />
+  </f:entry>
+  <f:entry title="Criteria" field="criteria">
+    <f:textarea />
+  </f:entry>
+  <f:entry title="Scopes">
+    <f:repeatableProperty field="scopes" />
+  </f:entry>
+  <f:entry title="Defect groups">
+    <f:repeatableProperty field="defectGroups" />
+  </f:entry>
+  <f:advanced>
+    <f:entry title="Poll interval seconds" field="pollIntervalSeconds">
+      <f:number />
+    </f:entry>
+    <f:entry title="Timeout minutes" field="timeoutMinutes">
+      <f:number />
+    </f:entry>
+    <f:entry title="Extended timeout minutes" field="timeoutMinutesExtended">
+      <f:number />
+    </f:entry>
+    <f:entry title="Base tester pass rate percentage" field="basePassrateFigure">
+      <f:number min="0" max="100" />
+    </f:entry>
+    <f:entry title="Base tester execution percentage" field="baseExecutionFigure">
+      <f:number min="0" max="100" />
+    </f:entry>
+    <f:entry title="Mark unstable instead of failed" field="markUnstable">
+      <f:checkbox />
+    </f:entry>
+    <f:entry title="Risk heat map" field="riskHeatMap">
+      <f:checkbox />
+    </f:entry>
+    <f:entry title="Risk heat map defect query" field="riskHeatMapDefectQuery">
+      <f:textarea />
+    </f:entry>
+    <f:entry title="Risk heat map max defects" field="riskHeatMapMaxDefects">
+      <f:number />
+    </f:entry>
+    <f:entry title="Passed statuses" field="passedStatuses">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Failed statuses" field="failedStatuses">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Neutral terminal statuses" field="neutralStatuses">
+      <f:textbox />
+    </f:entry>
+    <f:entry title="Running statuses" field="runningStatuses">
+      <f:textbox />
+    </f:entry>
+  </f:advanced>
+</j:jelly>
