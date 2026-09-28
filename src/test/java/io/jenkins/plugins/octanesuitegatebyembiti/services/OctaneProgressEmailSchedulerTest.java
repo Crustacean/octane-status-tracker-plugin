@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -15,7 +15,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class OctaneProgressEmailSchedulerTest {
   @Test
@@ -96,7 +97,8 @@ public class OctaneProgressEmailSchedulerTest {
     assertTrue(OctaneProgressEmailScheduler.MAX_ACTIVE_SCHEDULES >= 500);
   }
 
-  @Test(timeout = 30_000L)
+  @Test
+  @Timeout(value = 30_000L, unit = TimeUnit.MILLISECONDS)
   public void dispatchesFiveHundredRegistrationsOnceWithoutDropsDuplicatesOrQueueLeaks()
       throws Exception {
     int jobs = 500;
@@ -132,7 +134,7 @@ public class OctaneProgressEmailSchedulerTest {
       assertEquals(jobs, scheduler.activeScheduleCount());
       assertTrue(scheduler.largestPoolSize() <= OctaneProgressEmailScheduler.THREAD_COUNT);
       for (int job = 0; job < jobs; job++) {
-        assertEquals("delivery count for job " + job, 1, deliveriesByJob.get(job));
+        assertEquals(1, deliveriesByJob.get(job), "delivery count for job " + job);
       }
       long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
       System.out.printf(
@@ -148,7 +150,8 @@ public class OctaneProgressEmailSchedulerTest {
     }
   }
 
-  @Test(timeout = 15_000L)
+  @Test
+  @Timeout(value = 15_000L, unit = TimeUnit.MILLISECONDS)
   public void cancellationCannotRaceWithPostDeliveryRescheduling() throws Exception {
     OctaneProgressEmailScheduler scheduler =
         OctaneProgressEmailScheduler.createForTests(4, 64, Duration.ZERO, Duration.ofMinutes(5L));

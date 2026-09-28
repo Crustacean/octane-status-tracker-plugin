@@ -1,7 +1,7 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.models.GateResult;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.OctaneGateReportSnapshot;
@@ -14,9 +14,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import tools.jackson.databind.ObjectMapper;
 
 public class OctaneScaleArchitectureTest {
@@ -24,7 +26,8 @@ public class OctaneScaleArchitectureTest {
   private static final int SUITES_PER_JOB = 500;
   private static final int CHILD_RUNS_PER_SUITE = 50;
 
-  @Test(timeout = 60_000L)
+  @Test
+  @Timeout(value = 60_000L, unit = TimeUnit.MILLISECONDS)
   public void mapsMoreThanSevenHundredSuitesWithOneHundredFiftyChildrenToBoundedArtifacts()
       throws Exception {
     int suites = 701;
@@ -50,12 +53,13 @@ public class OctaneScaleArchitectureTest {
     List<java.util.Map<String, Object>> bars =
         (List<java.util.Map<String, Object>>) data.sections().get(0).get("bars");
     assertTrue(bars.get(0).containsKey("automationPercentage"));
-    assertTrue("initial index must stay below 250 KB", indexBytes < 250_000);
-    assertTrue("complete JSON must stay below 5 MB", completeBytes < 5_000_000);
+    assertTrue(indexBytes < 250_000, "initial index must stay below 250 KB");
+    assertTrue(completeBytes < 5_000_000, "complete JSON must stay below 5 MB");
     assertEquals(true, result.toPipelineMap().get("detailsTruncated"));
   }
 
-  @Test(timeout = 60_000L)
+  @Test
+  @Timeout(value = 60_000L, unit = TimeUnit.MILLISECONDS)
   public void mapsThirtyConcurrentDenseJobsToBoundedClientArtifacts() throws Exception {
     CountDownLatch ready = new CountDownLatch(JOBS);
     CountDownLatch start = new CountDownLatch(1);
@@ -114,8 +118,8 @@ public class OctaneScaleArchitectureTest {
         maximumIndexBytes.accumulateAndGet(measurement.indexBytes(), Math::max);
         maximumCompleteBytes.accumulateAndGet(measurement.completeBytes(), Math::max);
         assertTrue(!measurement.clientRendered());
-        assertTrue("initial index must stay below 250 KB", measurement.indexBytes() < 250_000);
-        assertTrue("complete JSON must stay below 5 MB", measurement.completeBytes() < 5_000_000);
+        assertTrue(measurement.indexBytes() < 250_000, "initial index must stay below 250 KB");
+        assertTrue(measurement.completeBytes() < 5_000_000, "complete JSON must stay below 5 MB");
         assertEquals(OctaneScaleTestFixture.DEFECTS_PER_JOB, measurement.defectCount());
         assertEquals(SUITES_PER_JOB * CHILD_RUNS_PER_SUITE, measurement.childRunCount());
         assertEquals(5, measurement.barCount());

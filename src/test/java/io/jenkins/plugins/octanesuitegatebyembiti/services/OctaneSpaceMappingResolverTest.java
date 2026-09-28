@@ -1,21 +1,21 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.AbortException;
 import hudson.FilePath;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.nio.file.Path;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class OctaneSpaceMappingResolverTest {
-  @Rule public TemporaryFolder temporary = new TemporaryFolder();
+  @TempDir public Path temporary;
 
   @Test
   public void resolvesRootUrlAndDerivedIdentifiersByName() throws Exception {
@@ -111,7 +111,7 @@ public class OctaneSpaceMappingResolverTest {
 
   @Test
   public void rejectsOversizedMappingFiles() throws Exception {
-    File directory = temporary.newFolder();
+    File directory = Files.createTempDirectory(temporary, "octane-test-").toFile();
     File mapping = new File(directory, "octane_spaces_mapping.json");
     Files.writeString(
         mapping.toPath(),
@@ -133,7 +133,7 @@ public class OctaneSpaceMappingResolverTest {
   }
 
   private FilePath workspaceWithMapping(String content) throws Exception {
-    File directory = temporary.newFolder();
+    File directory = Files.createTempDirectory(temporary, "octane-test-").toFile();
     Files.writeString(
         new File(directory, "octane_spaces_mapping.json").toPath(),
         content,

@@ -1,8 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.DefectRecord;
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.RunRecord;
@@ -18,7 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class CriteriaExpressionTest {
   private final StatusClassifier classifier =
@@ -388,9 +389,13 @@ public class CriteriaExpressionTest {
     assertTrue(CriteriaExpression.parse("regression.total == 3").evaluate(context));
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsUnknownScopedMetricAliases() {
-    CriteriaExpression.parse("global.executionRate == 100").evaluate(context(List.of()));
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          CriteriaExpression.parse("global.executionRate == 100").evaluate(context(List.of()));
+        });
   }
 
   @Test
@@ -447,27 +452,43 @@ public class CriteriaExpressionTest {
             .evaluate(context));
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsUnknownMetrics() {
-    CriteriaExpression.parse("unknownMetric >= 10").evaluate(context(List.of()));
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          CriteriaExpression.parse("unknownMetric >= 10").evaluate(context(List.of()));
+        });
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsBadSyntax() {
-    CriteriaExpression.parse("passRate >=");
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          CriteriaExpression.parse("passRate >=");
+        });
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsOversizedCriteriaExpressions() {
-    CriteriaExpression.parse("passRate == 100 AND ".repeat(500) + "passRate == 100");
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          CriteriaExpression.parse("passRate == 100 AND ".repeat(500) + "passRate == 100");
+        });
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsExcessivelyNestedCriteriaExpressions() {
-    CriteriaExpression.parse(
-        "(".repeat(CriteriaExpression.MAX_NESTING_DEPTH + 1)
-            + "passRate == 100"
-            + ")".repeat(CriteriaExpression.MAX_NESTING_DEPTH + 1));
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          CriteriaExpression.parse(
+              "(".repeat(CriteriaExpression.MAX_NESTING_DEPTH + 1)
+                  + "passRate == 100"
+                  + ")".repeat(CriteriaExpression.MAX_NESTING_DEPTH + 1));
+        });
   }
 
   @Test

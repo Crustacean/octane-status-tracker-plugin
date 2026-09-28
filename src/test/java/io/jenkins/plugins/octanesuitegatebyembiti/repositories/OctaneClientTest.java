@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.repositories;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
@@ -39,16 +39,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class OctaneClientTest {
   private HttpServer server;
   private String baseUrl;
   private ExecutorService serverExecutor;
 
-  @Before
+  @BeforeEach
   public void startServer() throws Exception {
     server = OctaneTestHttpsServer.create();
     serverExecutor = Executors.newCachedThreadPool();
@@ -59,7 +60,7 @@ public class OctaneClientTest {
     server.start();
   }
 
-  @After
+  @AfterEach
   public void stopServer() {
     if (server != null) {
       server.stop(0);
@@ -155,7 +156,7 @@ public class OctaneClientTest {
         client.close();
         var cookie = OctaneClient.class.getDeclaredField("cookieHeader");
         cookie.setAccessible(true);
-        org.junit.Assert.assertNull(cookie.get(client));
+        org.junit.jupiter.api.Assertions.assertNull(cookie.get(client));
       }
       assertEquals(1, secureLogouts.get());
       assertTrue(cookieReceivedSecurely.get());
@@ -176,7 +177,7 @@ public class OctaneClientTest {
 
       var cookie = OctaneClient.class.getDeclaredField("cookieHeader");
       cookie.setAccessible(true);
-      org.junit.Assert.assertNull(cookie.get(client));
+      org.junit.jupiter.api.Assertions.assertNull(cookie.get(client));
       client.close();
     }
   }
@@ -1350,7 +1351,7 @@ public class OctaneClientTest {
               AbortException.class, () -> client.fetchSuiteChildRuns("1001", "2002", "55"));
       assertFalse(failure.getMessage().contains("test-secret"));
       assertFalse(failure.getMessage().contains(cookie));
-      assertTrue(failure.getMessage(), failure.getMessage().contains("***"));
+      assertTrue(failure.getMessage().contains("***"), failure.getMessage());
     }
   }
 
@@ -2018,7 +2019,8 @@ public class OctaneClientTest {
     }
   }
 
-  @Test(timeout = 10_000L)
+  @Test
+  @Timeout(value = 10_000L, unit = TimeUnit.MILLISECONDS)
   public void prefetchesOnlySelectedSuiteAndPollsThreeThousandChildrenInParallel()
       throws Exception {
     int childCount = 3_000;
@@ -2111,7 +2113,7 @@ public class OctaneClientTest {
       assertTrue(maximumChildRequestsInFlight.get() > 1);
       assertTrue(
           maximumChildRequestsInFlight.get() <= OctaneRequestCoordinator.DEFAULT_MAX_IN_FLIGHT);
-      assertTrue("3,000-run poll should finish well below two minutes", elapsedMillis < 5_000L);
+      assertTrue(elapsedMillis < 5_000L, "3,000-run poll should finish well below two minutes");
       System.out.printf(
           "Octane 3000-run acceptance: childRequests=%d maxInFlight=%d elapsedMs=%d%n",
           childRequests.get(), maximumChildRequestsInFlight.get(), elapsedMillis);

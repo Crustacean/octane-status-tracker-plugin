@@ -1,12 +1,13 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OctaneCronScheduleTest {
   private static final ZoneId CONTROLLER_ZONE = ZoneId.systemDefault();
@@ -70,14 +71,22 @@ public class OctaneCronScheduleTest {
     assertEquals("Every minute.", schedule.description());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectsBlankCronExpression() {
-    new OctaneCronSchedule("  ");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          new OctaneCronSchedule("  ");
+        });
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void rejectsCronExpressionWithMoreThanFiveFields() {
-    new OctaneCronSchedule("* * * * * *");
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> {
+          new OctaneCronSchedule("* * * * * *");
+        });
   }
 
   private Instant at(int year, int month, int day, int hour, int minute) {

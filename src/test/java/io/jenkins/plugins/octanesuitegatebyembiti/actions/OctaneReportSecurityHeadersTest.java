@@ -1,8 +1,8 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.actions;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -10,7 +10,7 @@ import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OctaneReportSecurityHeadersTest {
   @Test
@@ -29,11 +29,11 @@ public class OctaneReportSecurityHeadersTest {
             "/static/abc/plugin/octane-status-tracker/js/octane-scale-report.js")) {
       for (boolean secure : new boolean[] {true, false}) {
         Map<String, String> headers = filter(path, secure);
-        assertEquals(path, "nosniff", headers.get("X-Content-Type-Options"));
+        assertEquals("nosniff", headers.get("X-Content-Type-Options"), path);
         assertEquals(
-            path,
             secure ? "max-age=31536000; includeSubDomains" : null,
-            headers.get("Strict-Transport-Security"));
+            headers.get("Strict-Transport-Security"),
+            path);
         assertNull(headers.get("Content-Type"));
         assertNull(headers.get("Content-Security-Policy"));
       }

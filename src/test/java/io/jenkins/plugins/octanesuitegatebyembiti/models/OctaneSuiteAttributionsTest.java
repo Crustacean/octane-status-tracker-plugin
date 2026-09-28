@@ -1,7 +1,7 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.models;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.RunRecord;
 import java.time.Instant;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OctaneSuiteAttributionsTest {
   private final StatusClassifier classifier =

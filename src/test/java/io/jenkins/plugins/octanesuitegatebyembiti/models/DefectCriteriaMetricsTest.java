@@ -1,11 +1,12 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.models;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.DefectRecord;
 import io.jenkins.plugins.octanesuitegatebyembiti.services.CriteriaException;
 import java.util.List;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DefectCriteriaMetricsTest {
   @Test
@@ -81,9 +82,13 @@ public class DefectCriteriaMetricsTest {
     assertEquals(0.0, metrics.value("majorCount"), 0.000001);
   }
 
-  @Test(expected = CriteriaException.class)
+  @Test
   public void rejectsUnknownDefectMetric() {
-    metrics().value("notConfigured");
+    assertThrows(
+        CriteriaException.class,
+        () -> {
+          metrics().value("notConfigured");
+        });
   }
 
   private DefectCriteriaMetrics metrics() {

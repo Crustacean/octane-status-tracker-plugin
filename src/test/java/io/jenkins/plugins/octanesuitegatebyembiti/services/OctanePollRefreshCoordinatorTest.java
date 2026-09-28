@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -12,10 +12,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class OctanePollRefreshCoordinatorTest {
-  @Test(timeout = 15_000L)
+  @Test
+  @Timeout(value = 15_000L, unit = TimeUnit.MILLISECONDS)
   public void joinsEmailRefreshToOneSlowActivePoll() throws Exception {
     OctanePollRefreshCoordinator coordinator = new OctanePollRefreshCoordinator();
     CountDownLatch pollStarted = new CountDownLatch(1);

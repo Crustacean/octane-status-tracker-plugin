@@ -1,7 +1,7 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.repositories;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
@@ -20,26 +20,28 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 public class OctaneRequestCoordinatorTest {
   private static final String LIMIT_PROPERTY =
       "io.jenkins.plugins.octanesuitegate.maxRequestsPerServer";
 
-  @Before
+  @BeforeEach
   public void resetBeforeTest() {
     OctaneRequestCoordinator.resetForTests();
   }
 
-  @After
+  @AfterEach
   public void resetAfterTest() {
     System.clearProperty(LIMIT_PROPERTY);
     OctaneRequestCoordinator.resetForTests();
   }
 
-  @Test(timeout = 15_000L)
+  @Test
+  @Timeout(value = 15_000L, unit = TimeUnit.MILLISECONDS)
   public void capsConcurrentRequestsPerServerAndReleasesEveryPermit() throws Exception {
     System.setProperty(LIMIT_PROPERTY, "2");
     CountDownLatch firstWave = new CountDownLatch(2);
@@ -109,7 +111,8 @@ public class OctaneRequestCoordinatorTest {
     }
   }
 
-  @Test(timeout = 30_000L)
+  @Test
+  @Timeout(value = 30_000L, unit = TimeUnit.MILLISECONDS)
   public void coordinatesFiveHundredParallelJobsWithBoundedLatencyAndNoPermitLeak()
       throws Exception {
     int jobs = 500;

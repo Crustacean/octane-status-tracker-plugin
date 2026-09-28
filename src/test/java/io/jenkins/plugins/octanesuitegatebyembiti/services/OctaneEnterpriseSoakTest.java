@@ -1,8 +1,8 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
 
 /** Opt-in endurance test for production-like progress-email scheduler pressure. */
 public class OctaneEnterpriseSoakTest {
@@ -25,8 +25,8 @@ public class OctaneEnterpriseSoakTest {
 
   @Test
   public void holdsSchedulerResourcesStableForConfiguredSoakWindow() throws Exception {
-    Assume.assumeTrue(
-        "Enable with -D" + ENABLED_PROPERTY + "=true", Boolean.getBoolean(ENABLED_PROPERTY));
+    Assumptions.assumeTrue(
+        Boolean.getBoolean(ENABLED_PROPERTY), "Enable with -D" + ENABLED_PROPERTY + "=true");
 
     int jobs = Math.max(1, Integer.getInteger(JOBS_PROPERTY, 500));
     long durationMinutes = Math.max(1L, Long.getLong(DURATION_MINUTES_PROPERTY, 24L * 60L));
@@ -49,11 +49,11 @@ public class OctaneEnterpriseSoakTest {
         deliveries += runCycle(scheduler, jobs);
         cycles++;
         peakHeapBytes = Math.max(peakHeapBytes, memory.getHeapMemoryUsage().getUsed());
-        assertNull("Deadlocked JVM threads detected", threads.findDeadlockedThreads());
+        assertNull(threads.findDeadlockedThreads(), "Deadlocked JVM threads detected");
         assertTrue(
-            "Scheduler worker count escaped its bounded pool",
             threads.getThreadCount()
-                <= baselineThreads + OctaneProgressEmailScheduler.THREAD_COUNT + 8);
+                <= baselineThreads + OctaneProgressEmailScheduler.THREAD_COUNT + 8,
+            "Scheduler worker count escaped its bounded pool");
       }
     } finally {
       scheduler.shutdownForTests();
@@ -90,7 +90,7 @@ public class OctaneEnterpriseSoakTest {
               "soak-" + job, "soak-build-" + job, new ImmediateThenDailySchedule(), delivery));
     }
     try {
-      assertTrue("Soak delivery cycle timed out", completed.await(60L, TimeUnit.SECONDS));
+      assertTrue(completed.await(60L, TimeUnit.SECONDS), "Soak delivery cycle timed out");
       assertEquals(jobs, deliveries.get());
       return deliveries.get();
     } finally {

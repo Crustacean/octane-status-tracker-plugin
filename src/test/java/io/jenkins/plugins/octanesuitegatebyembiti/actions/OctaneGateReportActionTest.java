@@ -1,10 +1,10 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.actions;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -30,13 +30,15 @@ import net.sf.json.JSONObject;
 import org.htmlunit.Page;
 import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlPage;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.stapler.interceptor.RequirePOST;
 
+@WithJenkins
 public class OctaneGateReportActionTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
   @Test
   public void loadsUnderPublishedPluginIdentityWithExistingReportClass() {
@@ -1522,10 +1524,10 @@ public class OctaneGateReportActionTest {
       HtmlElement bar, HtmlElement overlay, String mode) {
     for (String direction : List.of("left", "right", "top", "bottom")) {
       bar.mouseMove();
-      assertEquals(mode + " " + direction, "false", overlay.getAttribute("aria-hidden"));
+      assertEquals("false", overlay.getAttribute("aria-hidden"), mode + " " + direction);
       assertTrue(overlay.getAttribute("class").contains("octane-bar-popup-visible"));
       bar.mouseOut();
-      assertEquals(mode + " " + direction, "true", overlay.getAttribute("aria-hidden"));
+      assertEquals("true", overlay.getAttribute("aria-hidden"), mode + " " + direction);
       assertFalse(overlay.getAttribute("class").contains("octane-bar-popup-visible"));
     }
   }
@@ -1538,7 +1540,7 @@ public class OctaneGateReportActionTest {
     Matcher matcher =
         Pattern.compile("(?m)^\\s*" + Pattern.quote(selector) + "\\s*\\{(?<declarations>[^}]*)}")
             .matcher(html);
-    assertTrue("Missing CSS rule for " + selector, matcher.find());
+    assertTrue(matcher.find(), "Missing CSS rule for " + selector);
     return matcher.group("declarations");
   }
 
@@ -1611,5 +1613,10 @@ public class OctaneGateReportActionTest {
         StatusClassifier.DEFAULT_FAILED_STATUSES,
         StatusClassifier.DEFAULT_NEUTRAL_STATUSES,
         StatusClassifier.DEFAULT_RUNNING_STATUSES);
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }

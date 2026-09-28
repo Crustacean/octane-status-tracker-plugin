@@ -1,8 +1,8 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.FilePath;
 import hudson.model.FreeStyleBuild;
@@ -14,12 +14,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
+@WithJenkins
 public class OctaneEmailDeliveryCoordinatorTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
   @Test
   public void serializesSameBuildWorkspaceAndReleasesRegistryEntry() throws Exception {
@@ -52,7 +55,8 @@ public class OctaneEmailDeliveryCoordinatorTest {
     assertEquals(0, OctaneEmailDeliveryCoordinator.activeEntryCount());
   }
 
-  @Test(timeout = 20_000L)
+  @Test
+  @Timeout(value = 20_000L, unit = TimeUnit.MILLISECONDS)
   public void serializesOneHundredSameBuildCapturesWithoutRegistryLeak() throws Exception {
     FreeStyleProject project = jenkins.createFreeStyleProject();
     FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
@@ -87,5 +91,10 @@ public class OctaneEmailDeliveryCoordinatorTest {
     assertEquals(1, maximumActive.get());
     assertEquals(0, active.get());
     assertEquals(0, OctaneEmailDeliveryCoordinator.activeEntryCount());
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }

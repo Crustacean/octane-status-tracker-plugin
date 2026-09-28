@@ -5,7 +5,7 @@ before a Pipeline stage or Freestyle build proceeds. It provides live execution 
 tester reports, defect analysis, and optional screenshot emails.
 
 - Plugin ID: `octane-status-tracker`
-- Requirements: Jenkins 2.582 or newer; Java 21 or newer on the controller and agents
+- Requirements: Jenkins 2.568.3 LTS or newer; Java 21 or newer on the controller and agents
 - License: [MIT](LICENSE)
 
 ## Parent and Child Pipeline Setup
@@ -264,9 +264,16 @@ The submission repository is `Crustacean/octane-status-tracker-plugin`. Request
 [Jenkins hosting approval](https://www.jenkins.io/doc/developer/publishing/requesting-hosting/)
 and publishing permissions before releasing. Confirm maintainer account and license
 details, and explain how the polling/quality-gate scope differs from existing Octane
-integrations. After hosting, update `gitHubRepo` in `pom.xml` to the approved `jenkinsci`
-repository. Enable ci.jenkins.io using the root `Jenkinsfile` and have the hosting team
+integrations. The POM and CODEOWNERS already target the requested
+`jenkinsci/octane-status-tracker-plugin` repository and its developers team. Each release
+maintainer must log into [Jenkins Jira](https://issues.jenkins.io/) with their Jenkins
+account before the hosting checks can recognize them; the account report refreshes hourly.
+Enable ci.jenkins.io using the root `Jenkinsfile` and have the hosting team
 approve CD permissions and provision `MAVEN_USERNAME` and `MAVEN_TOKEN`.
+
+Renovate uses the Jenkins shared dependency-update configuration, and the Jenkins Security
+Scan workflow follows the Jenkins archetype. Enable these integrations on the hosted
+repository; local verification does not replace their remote checks.
 
 The **Release** workflow runs only on the hosted repository's `main` branch, after a
 passing Jenkins check. It defaults to validation without publishing. Uncheck

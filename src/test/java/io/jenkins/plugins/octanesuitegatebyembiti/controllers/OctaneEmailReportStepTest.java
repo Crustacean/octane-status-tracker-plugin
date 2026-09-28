@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.controllers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.AbortException;
 import hudson.FilePath;
@@ -29,16 +29,18 @@ import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.TestExtension;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
+@WithJenkins
 public class OctaneEmailReportStepTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
-  @After
+  @AfterEach
   public void resetServices() {
     OctaneEmailReportStep.resetServicesForTesting();
   }
@@ -313,5 +315,10 @@ public class OctaneEmailReportStepTest {
           StatusClassifier.DEFAULT_NEUTRAL_STATUSES,
           StatusClassifier.DEFAULT_RUNNING_STATUSES);
     }
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }

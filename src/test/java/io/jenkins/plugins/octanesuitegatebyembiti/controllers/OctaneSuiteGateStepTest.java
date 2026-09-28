@@ -1,7 +1,7 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.controllers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -11,13 +11,13 @@ import hudson.util.FormValidation;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.GateRequest;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.OctaneDefectGroup;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.List;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class OctaneSuiteGateStepTest {
-  @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir public Path temporaryFolder;
 
   @Test
   public void bindsDefectGroupsIntoGateRequest() {
@@ -72,7 +72,7 @@ public class OctaneSuiteGateStepTest {
 
   @Test
   public void freestyleBuilderResolvesDynamicConnectionBeforeCreatingRequest() throws Exception {
-    FilePath workspace = new FilePath(temporaryFolder.getRoot());
+    FilePath workspace = new FilePath(temporaryFolder.toFile());
     workspace
         .child("octane_spaces_mapping.json")
         .write(

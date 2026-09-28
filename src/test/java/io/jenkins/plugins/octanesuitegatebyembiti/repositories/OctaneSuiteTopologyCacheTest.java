@@ -1,7 +1,7 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.repositories;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.repositories.OctaneSuiteTopologyCache.Topology;
 import java.util.LinkedHashMap;
@@ -13,17 +13,17 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class OctaneSuiteTopologyCacheTest {
-  @Before
+  @BeforeEach
   public void resetBeforeTest() {
     OctaneSuiteTopologyCache.resetForTests();
   }
 
-  @After
+  @AfterEach
   public void resetAfterTest() {
     OctaneSuiteTopologyCache.resetForTests();
   }

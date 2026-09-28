@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.controllers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import hudson.AbortException;
 import hudson.EnvVars;
@@ -24,15 +24,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
+@WithJenkins
 public class OctaneCronProgressEmailStepTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
-  @After
+  @AfterEach
   public void resetServices() {
     OctaneEmailReportStep.resetServicesForTesting();
   }
@@ -279,5 +281,10 @@ public class OctaneCronProgressEmailStepTest {
         StatusClassifier.DEFAULT_FAILED_STATUSES,
         StatusClassifier.DEFAULT_NEUTRAL_STATUSES,
         StatusClassifier.DEFAULT_RUNNING_STATUSES);
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }

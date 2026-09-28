@@ -1,8 +1,8 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.DefectRecord;
 import io.jenkins.plugins.octanesuitegatebyembiti.entities.RunRecord;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class OctaneEmailBodyRendererTest {
   private static final String REPORT_URL =
@@ -1118,16 +1118,16 @@ public class OctaneEmailBodyRendererTest {
   private String testerColumnTable(String html, String column) {
     String marker = "data-octane-email-column=\"" + column + "\"";
     int markerIndex = html.indexOf(marker);
-    assertTrue("Missing tester email column " + column, markerIndex >= 0);
+    assertTrue(markerIndex >= 0, "Missing tester email column " + column);
     int tableStart = html.lastIndexOf("<table", markerIndex);
     int tableEnd = html.indexOf("</table>", markerIndex);
-    assertTrue("Missing tester email column close " + column, tableEnd > markerIndex);
+    assertTrue(tableEnd > markerIndex, "Missing tester email column close " + column);
     return html.substring(tableStart, tableEnd + "</table>".length());
   }
 
   private String testerRow(String table, String tester) {
     int testerIndex = table.indexOf(">" + tester + "</th>");
-    assertTrue("Missing tester row for " + tester, testerIndex >= 0);
+    assertTrue(testerIndex >= 0, "Missing tester row for " + tester);
     int rowStart = table.lastIndexOf("<tr", testerIndex);
     int rowEnd = table.indexOf("</tr>", testerIndex);
     return table.substring(rowStart, rowEnd + "</tr>".length());
@@ -1135,7 +1135,7 @@ public class OctaneEmailBodyRendererTest {
 
   private String testerTotalRow(String html) {
     int marker = html.indexOf("data-octane-tester-total=\"true\"");
-    assertTrue("Missing tester total row", marker >= 0);
+    assertTrue(marker >= 0, "Missing tester total row");
     int rowStart = html.lastIndexOf("<tr", marker);
     int rowEnd = html.indexOf("</tr>", marker);
     return html.substring(rowStart, rowEnd + "</tr>".length());
@@ -1143,16 +1143,16 @@ public class OctaneEmailBodyRendererTest {
 
   private String testerAutomationCell(String row, String attribute) {
     int marker = row.indexOf(attribute + "=\"true\"");
-    assertTrue("Missing tester automation cell " + attribute, marker >= 0);
+    assertTrue(marker >= 0, "Missing tester automation cell " + attribute);
     int cellStart = row.lastIndexOf("<td", marker);
     int cellEnd = row.indexOf("</td>", marker);
-    assertTrue("Missing tester automation cell bounds " + attribute, cellEnd > marker);
+    assertTrue(cellEnd > marker, "Missing tester automation cell bounds " + attribute);
     return row.substring(cellStart, cellEnd + "</td>".length());
   }
 
   private String emailValueCellText(String html) {
     Matcher matcher = Pattern.compile("<td[^>]*>([^<]*)</td>").matcher(html);
-    assertTrue("Missing email value cell", matcher.find());
+    assertTrue(matcher.find(), "Missing email value cell");
     return matcher.group(1);
   }
 
@@ -1169,7 +1169,7 @@ public class OctaneEmailBodyRendererTest {
       String html, String backgroundColor, String fontColor, boolean expectsBgcolor) {
     String row = passRateRow(html);
     int valueCellStart = row.indexOf("</th><td");
-    assertTrue("Pass Rate value cell should follow label cell", valueCellStart >= 0);
+    assertTrue(valueCellStart >= 0, "Pass Rate value cell should follow label cell");
     assertEquals(expectsBgcolor, row.indexOf("bgcolor=", valueCellStart) >= 0);
     if (expectsBgcolor) {
       assertTrue(row.contains("bgcolor=\"" + backgroundColor + "\""));
@@ -1197,10 +1197,10 @@ public class OctaneEmailBodyRendererTest {
 
   private String detailRow(String html, String labelText) {
     int label = html.indexOf(labelText);
-    assertTrue("Missing " + labelText + " row", label >= 0);
+    assertTrue(label >= 0, "Missing " + labelText + " row");
     int start = html.lastIndexOf("<tr>", label);
     int end = html.indexOf("</tr>", label);
-    assertTrue("Missing " + labelText + " row bounds", start >= 0 && end > label);
+    assertTrue(start >= 0 && end > label, "Missing " + labelText + " row bounds");
     return html.substring(start, end + "</tr>".length());
   }
 
@@ -1219,10 +1219,10 @@ public class OctaneEmailBodyRendererTest {
   private void assertPairedCriteriaAndReconciliationTables(String html) {
     String marker = "data-octane-email-section=\"criteria-reconciliation\"";
     int markerIndex = html.indexOf(marker);
-    assertTrue("Missing criteria/reconciliation row", markerIndex >= 0);
+    assertTrue(markerIndex >= 0, "Missing criteria/reconciliation row");
     int rowStart = html.lastIndexOf("<table", markerIndex);
     int rowEnd = html.indexOf("</table></td></tr></table>", markerIndex);
-    assertTrue("Missing criteria/reconciliation row bounds", rowStart >= 0 && rowEnd > rowStart);
+    assertTrue(rowStart >= 0 && rowEnd > rowStart, "Missing criteria/reconciliation row bounds");
     String row = html.substring(rowStart, rowEnd);
     assertTrue(row.contains("data-octane-email-table=\"criteria-evaluation\""));
     assertTrue(row.contains("data-octane-email-table=\"defect-reconciliation\""));
@@ -1456,10 +1456,10 @@ public class OctaneEmailBodyRendererTest {
   private String emailTable(String html, String tableName) {
     String marker = "data-octane-email-table=\"" + tableName + "\"";
     int start = html.indexOf(marker);
-    assertTrue("Missing email table " + tableName, start >= 0);
+    assertTrue(start >= 0, "Missing email table " + tableName);
     int tableStart = html.lastIndexOf("<table", start);
     int tableEnd = html.indexOf("</table>", start);
-    assertTrue("Missing email table close for " + tableName, tableStart >= 0 && tableEnd > start);
+    assertTrue(tableStart >= 0 && tableEnd > start, "Missing email table close for " + tableName);
     return html.substring(tableStart, tableEnd + "</table>".length());
   }
 }

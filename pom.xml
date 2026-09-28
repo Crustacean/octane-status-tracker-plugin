@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>6.2105.v7d6ddb_2da_0d2</version>
+    <version>6.2211.v27f680c93c53</version>
     <relativePath />
   </parent>
 
@@ -16,7 +16,7 @@
 
   <name>Octane Status Tracker</name>
   <description>Wait for ALM Octane suite run results before allowing a Jenkins build to continue.</description>
-  <url>https://github.com/${gitHubRepo}</url>
+  <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
 
   <licenses>
     <license>
@@ -24,13 +24,6 @@
       <url>https://opensource.org/license/mit/</url>
     </license>
   </licenses>
-
-  <developers>
-    <developer>
-      <id>embiti</id>
-      <name>Embiti</name>
-    </developer>
-  </developers>
 
   <scm>
     <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
@@ -46,11 +39,15 @@
 
   <properties>
     <changelist>999999-SNAPSHOT</changelist>
-    <gitHubRepo>Crustacean/octane-status-tracker-plugin</gitHubRepo>
+    <gitHubRepo>jenkinsci/${project.artifactId}-plugin</gitHubRepo>
     <scmTag>HEAD</scmTag>
-    <java.level>25</java.level>
-    <jenkins.version>2.582</jenkins.version>
-    <jenkins-test-harness.version>2582.v92781333ea_78</jenkins-test-harness.version>
+    <jenkins.baseline>2.568</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
+    <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
+    <banObsoleteDependencyOverrides.skip>false</banObsoleteDependencyOverrides.skip>
+    <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
+    <ban-deprecated-stapler.skip>false</ban-deprecated-stapler.skip>
+    <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
     <spotless.check.skip>false</spotless.check.skip>
   </properties>
 
@@ -58,30 +55,10 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-2.568.x</artifactId>
-        <version>7002.v028a_3607ddc8</version>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>7093.v37de7b_4a_8a_4f</version>
         <type>pom</type>
         <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>io.jenkins.plugins</groupId>
-        <artifactId>jackson-annotations2-api</artifactId>
-        <version>2.22-19.v10a_a_582ea_26e</version>
-      </dependency>
-      <dependency>
-        <groupId>io.jenkins.plugins</groupId>
-        <artifactId>jackson3-api</artifactId>
-        <version>3.2.2-96.v599957900a_1a_</version>
-      </dependency>
-      <dependency>
-        <groupId>io.jenkins.plugins</groupId>
-        <artifactId>jakarta-xml-bind-api</artifactId>
-        <version>4.0.9-19.v2b_a_5b_44d9a_1c</version>
-      </dependency>
-      <dependency>
-        <groupId>io.jenkins.plugins</groupId>
-        <artifactId>woodstox-core-api</artifactId>
-        <version>7.2.1-6.v3718a_a_11f5c4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -92,16 +69,6 @@
         <groupId>org.apache.ivy</groupId>
         <artifactId>ivy</artifactId>
         <version>2.6.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>bouncycastle-api</artifactId>
-        <version>2.30.1.85.2-304.v4b_5b_62e59a_a_7</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>script-security</artifactId>
-        <version>1415.v9a_f9b_3a_c253d</version>
       </dependency>
       <dependency>
         <groupId>org.mozilla</groupId>

@@ -1,11 +1,11 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.actions;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import hudson.security.ACL;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.GateRequest;
@@ -24,15 +24,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import jenkins.model.Jenkins;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.MockAuthorizationStrategy;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import org.kohsuke.stapler.StaplerRequest2;
 import org.kohsuke.stapler.StaplerResponse2;
 
+@WithJenkins
 public class OctaneReportEndpointSecurityTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
   @Test
   public void staplerEndpointsProtectJsonScriptsErrorsAndConditionalResponses() throws Exception {
@@ -194,8 +196,8 @@ public class OctaneReportEndpointSecurityTest {
                     }
                     case "getOutputStream" -> {
                       assertTrue(
-                          "Only packaged JavaScript may bypass JSON serialization",
-                          headers.get("Content-Type").startsWith("text/javascript"));
+                          headers.get("Content-Type").startsWith("text/javascript"),
+                          "Only packaged JavaScript may bypass JSON serialization");
                       return new ServletOutputStream() {
                         @Override
                         public void write(int value) {
@@ -221,5 +223,10 @@ public class OctaneReportEndpointSecurityTest {
     private byte[] bytes() {
       return body.toString().getBytes(StandardCharsets.UTF_8);
     }
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }

@@ -1,9 +1,9 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
@@ -21,27 +21,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.concurrent.atomic.AtomicReference;
 import jenkins.model.Jenkins;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 
+@WithJenkins
 public class OctaneDynamicConnectionTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
   private HttpServer server;
   private String baseUrl;
 
-  @Before
-  public void startServer() throws Exception {
+  @BeforeEach
+  public void startServer(JenkinsRule jenkins) throws Exception {
+    this.jenkins = jenkins;
     server = OctaneTestHttpsServer.create();
     server.createContext("/authentication/sign_out", exchange -> json(exchange, 200, "{}"));
     server.start();
     baseUrl = "https://127.0.0.1:" + server.getAddress().getPort();
   }
 
-  @After
+  @AfterEach
   public void stopServer() {
     if (server != null) {
       server.stop(0);

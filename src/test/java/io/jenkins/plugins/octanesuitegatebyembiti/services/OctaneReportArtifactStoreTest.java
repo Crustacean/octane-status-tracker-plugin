@@ -1,11 +1,11 @@
 package io.jenkins.plugins.octanesuitegatebyembiti.services;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
@@ -24,14 +24,16 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Instant;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.JenkinsRule;
+import org.jvnet.hudson.test.junit.jupiter.WithJenkins;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
+@WithJenkins
 public class OctaneReportArtifactStoreTest {
-  @Rule public JenkinsRule jenkins = new JenkinsRule();
+  private JenkinsRule jenkins;
 
   @Test
   public void publishesAtomicBoundedArtifactsAndReloadsCompatibilitySnapshot() throws Exception {
@@ -80,9 +82,9 @@ public class OctaneReportArtifactStoreTest {
     try (var artifacts = Files.walk(root)) {
       for (Path path : artifacts.toList()) {
         assertEquals(
-            path.toString(),
             PosixFilePermissions.fromString(Files.isDirectory(path) ? "rwx------" : "rw-------"),
-            Files.getPosixFilePermissions(path));
+            Files.getPosixFilePermissions(path),
+            path.toString());
       }
     }
     Files.setPosixFilePermissions(root, PosixFilePermissions.fromString("rwxr-xr-x"));
@@ -257,5 +259,10 @@ public class OctaneReportArtifactStoreTest {
     assertThrows(
         IOException.class, () -> store.publish(build, OctaneScaleTestFixture.snapshot(0, 1, 1)));
     assertEquals("{}", Files.readString(outside));
+  }
+
+  @BeforeEach
+  void setUpJenkins(JenkinsRule jenkins) {
+    this.jenkins = jenkins;
   }
 }
