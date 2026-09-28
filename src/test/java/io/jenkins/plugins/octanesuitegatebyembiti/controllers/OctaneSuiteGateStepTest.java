@@ -38,12 +38,12 @@ public class OctaneSuiteGateStepTest {
   @Test
   public void bindsDynamicConnectionIntoGateRequest() {
     OctaneSuiteGateStep step = new OctaneSuiteGateStep("default_shared_space", "1196");
-    step.setBaseUrl(" https://octane.example.test ");
+    step.setBaseUrl(" octane-shared-url ");
     step.setCredentialsId(" default_shared_space ");
 
     GateRequest request = step.toRequest();
 
-    assertEquals("https://octane.example.test", request.getBaseUrl());
+    assertEquals("octane-shared-url", request.getBaseUrl());
     assertEquals("default_shared_space", request.getCredentialsId());
   }
 
@@ -78,7 +78,7 @@ public class OctaneSuiteGateStepTest {
         .write(
             """
             {
-              "shared_url": "https://octane.example.test",
+              "shared_url": "octane-shared-url",
               "shared_spaces": [{
                 "sharedSpaceId": "1001",
                 "sharedSpaceName": "Default Space",
@@ -97,7 +97,7 @@ public class OctaneSuiteGateStepTest {
     GateRequest request = builder.createRequest(workspace, new EnvVars(), TaskListener.NULL);
 
     assertEquals("default_space", request.getServerId());
-    assertEquals("https://octane.example.test", request.getBaseUrl());
+    assertEquals("octane-shared-url", request.getBaseUrl());
     assertEquals("default_space", request.getCredentialsId());
     assertEquals("1001", request.getSharedSpaceId());
     assertEquals("2002", request.getWorkspaceId());

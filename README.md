@@ -1,8 +1,8 @@
 # Octane Status Tracker
 
-Jenkins plugin that polls existing ALM Octane suite runs and evaluates quality gates
-before a Pipeline stage or Freestyle build proceeds. It provides live execution and
-tester reports, defect analysis, and optional screenshot emails.
+This is a Jenkins plugin that polls an existing ALM Octane suite runs and evaluates its
+results against quality gates before a Pipeline stage or Freestyle build proceeds. It
+provides live execution and tester reports, defect analysis, and optional screenshot emails.
 
 - Plugin ID: `octane-status-tracker`
 - Requirements: Jenkins 2.568.3 LTS or newer; Java 21 or newer on the controller and agents
@@ -10,11 +10,11 @@ tester reports, defect analysis, and optional screenshot emails.
 
 ## Parent and Child Pipeline Setup
 
-Keep organization-wide defaults and shared Pipeline logic in one **parent** repository.
+Proposition: keep organization-wide defaults and shared Pipeline logic in one **parent** repository.
 Each project's **child** repository contains the bootstrap Jenkinsfile and a
-`variables.yaml` file for its dashboard, spaces, suite runs and reporting options.
+`variables.yaml` file for its specific dashboard, spaces, suite runs and reporting options.
 After the initial setup, test engineers edit the child YAML; they do not need to
-change the parent Jenkinsfile for each project.
+change the parent Jenkinsfile for each project making it easy to transfer ownership during handover.
 
 ### Example Repositories
 
@@ -43,7 +43,7 @@ Plugins**, accepting their dependencies:
 
 Credentials and [Mailer](https://plugins.jenkins.io/mailer/) are dependencies of
 Octane Status Tracker. The full Pipeline suite, Git and Pipeline Utility Steps must
-also be installed for these examples; installing the HPI alone is not sufficient.
+also be installed for these examples to work.
 For deployment integration, ensure [Pipeline: Build Step](https://www.jenkins.io/doc/pipeline/steps/pipeline-build-step/)
 (`pipeline-build-step`) is installed for the `build` step.
 
@@ -85,9 +85,9 @@ machine running the exporter, not by the Jenkins polling job itself.
    has `"specific_url": ""`; leave it blank to inherit `shared_url`, or set a
    different Secret text credential ID for that space. IDs must contain only letters,
    digits, `_`, `-`, and `.`. A nonblank override that cannot be resolved fails the
-   build; it never silently selects another server. Credentials must be accessible
-   to the executing job (global or its containing folder). Existing literal HTTPS
-   URLs remain supported for migration. The parent can pass the selected ID through
+   build. Credentials must be accessible to the executing job (global or its containing folder).
+   Literal URLs are rejected in both fields, including an overridden `shared_url`.
+   The parent must pass the selected credential ID through
    the existing `baseUrl` step argument unchanged; the plugin resolves it at runtime
    and persists only the ID. Do not put the secret URL in Pipeline Groovy or JSON.
 5. Create Jenkins **Username with password** credentials for each Octane connection:
@@ -118,8 +118,8 @@ OCTANE_EMAIL_TO: "qa-team@example.com"
 PROGRESS_EMAIL_INTERVAL_CRONJOB: ""
 ```
 
-These are placeholders, not ready-to-run Octane IDs. An empty cron value disables
-interval emails; the parent still sends its final report. The current parent example
+These are placeholders. An empty cron value disables interval emails; the parent
+still sends its final report. The current parent example
 requires a nonempty critical suite-run selector. Its shared criteria are inherited
 unless the YAML supplies `OCTANE_CRITERIA`.
 
@@ -183,7 +183,7 @@ with a trusted certificate chain. Never put credentials in the Jenkinsfile.
 ```groovy
 octaneSuiteGate(
   serverId: 'octane',
-  baseUrl: 'https://octane.example.com',
+  baseUrl: 'secret-id',
   credentialsId: 'octane-api-client',
   sharedSpaceId: '1001',
   workspaceId: '5002',
@@ -219,80 +219,3 @@ shared space, workspace and criteria. Build reports appear under **Octane Gate R
 The `octaneEmailReport` and `octaneCronProgressEmail` Pipeline steps provide final and
 interval reporting. Email and screenshot features require their configured mail
 transport and a supported browser executable; they are not needed for basic polling.
-
-## Build and Test
-
-Use JDK 25 and the Maven wrapper, which pins Maven 3.9.16 with checksum verification.
-The current Jenkins baseline compiles the plugin for Java 21.
-
-```sh
-./mvnw -B -ntp clean verify
-node --test --test-concurrency=1 src/test/javascript/*.test.mjs
-git diff --check
-```
-
-`verify` runs Java/Jenkins tests, Spotless, SpotBugs and packages
-`target/octane-status-tracker.hpi`. Use `./mvnw spotless:apply` for formatting and
-`./mvnw hpi:run` for local development. No live Octane server is needed for unit tests.
-
-JavaScript tests need Node.js 22 or newer. Browser regressions use `google-chrome` on
-PATH; Firefox tests additionally need Firefox and geckodriver. Missing browsers cause
-their tests to be skipped locally, but CI requires both browsers and the driver. Run test
-files sequentially to avoid competing browser processes on shared runners. The long-running
-soak test is opt-in.
-`src/test/resources/octane-test-tls.p12` is a test-only HTTPS fixture, not a production
-certificate or trust store. Do not commit build output or production configuration.
-
-## Installation and Security
-
-This repository is being prepared for Jenkins hosting; Update Center availability is
-not implied. For evaluation, upload the built HPI through **Manage Jenkins > Plugins >
-Advanced settings**, install its dependencies, and restart Jenkins.
-
-This new plugin ID is not an automatic upgrade of the private
-`octane-suite-gate-by-embiti` plugin. Do not install both together. Back up Jenkins,
-test replacement on a disposable controller, remove the old plugin, install this one,
-restart, and verify saved reports and jobs before production use. Existing Java
-packages and Pipeline symbols are preserved, but saved metadata migration is not guaranteed.
-
-Secure report responses include HSTS with `includeSubDomains`; ensure HTTPS coverage
-for affected subdomains and correct trusted proxy/container configuration. Restrict
-job configuration and report access, and treat emailed reports as sensitive data.
-Report vulnerabilities privately through the
-[Jenkins security process](https://www.jenkins.io/security/reporting/), not public issues.
-
-## Versioning and Publishing
-
-Development builds use `999999-SNAPSHOT`; releases use Git history depth and commit
-hash, such as `123.vabcdef456789`. Versioning follows
-[Jenkins' Git-based release setup](https://www.jenkins.io/doc/developer/publishing/releasing-cd/).
-Releases are manual-only; pushes and pull requests never publish.
-
-The submission repository is `Crustacean/octane-status-tracker-plugin`. Request
-[Jenkins hosting approval](https://www.jenkins.io/doc/developer/publishing/requesting-hosting/)
-and publishing permissions before releasing. Confirm maintainer account and license
-details, and explain how the polling/quality-gate scope differs from existing Octane
-integrations. The POM and CODEOWNERS already target the requested
-`jenkinsci/octane-status-tracker-plugin` repository and its developers team. Each release
-maintainer must log into [Jenkins Jira](https://issues.jenkins.io/) with their Jenkins
-account before the hosting checks can recognize them; the account report refreshes hourly.
-Enable ci.jenkins.io using the root `Jenkinsfile` and have the hosting team
-approve CD permissions and provision `MAVEN_USERNAME` and `MAVEN_TOKEN`.
-
-Renovate uses the Jenkins shared dependency-update configuration, and the Jenkins Security
-Scan workflow follows the Jenkins archetype. Enable these integrations on the hosted
-repository; local verification does not replace their remote checks.
-
-The **Release** workflow runs only on the hosted repository's `main` branch, after a
-passing Jenkins check. It defaults to validation without publishing. Uncheck
-`validate_only` to release reviewed, committed code. Do not use `maven-release-plugin`.
-
-Preview a generated version without publishing:
-
-```sh
-./mvnw validate help:evaluate -Dexpression=project.version -Dset.changelist -Dignore.dirt
-```
-
-The dirty-worktree option is for preview only. Release from a clean checkout with full
-Git history. Hosting approval, repository ownership changes and publication are manual
-steps and have not been performed by preparing this repository.

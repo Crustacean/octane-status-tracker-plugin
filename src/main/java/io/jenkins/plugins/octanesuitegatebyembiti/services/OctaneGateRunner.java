@@ -1357,10 +1357,7 @@ public class OctaneGateRunner {
     ResolvedConnection connection = resolveConnection(request);
     StandardUsernamePasswordCredentials credentials = connection.credentials();
     return OctaneClient.withCredentials(
-        connection.baseUrl(),
-        credentials.getUsername(),
-        credentials.getPassword(),
-        OctaneServerUrl.isCredentialReference(request.getBaseUrl()));
+        connection.baseUrl(), credentials.getUsername(), credentials.getPassword(), true);
   }
 
   private ResolvedConnection resolveConnection(GateRequest request) throws AbortException {
@@ -1372,23 +1369,26 @@ public class OctaneGateRunner {
               + (spaceName.isEmpty() ? "<unknown>" : spaceName)
               + " in octane_spaces_mapping.json");
     }
-    if (OctaneServerUrl.isCredentialReference(baseUrl)) {
-      StringCredentials credential =
-          credentialRun == null
-              ? CredentialsMatchers.firstOrNull(
-                  CredentialsProvider.lookupCredentialsInItemGroup(
-                      StringCredentials.class, Jenkins.get(), ACL.SYSTEM2, List.of()),
-                  CredentialsMatchers.withId(baseUrl))
-              : CredentialsProvider.findCredentialById(
-                  baseUrl, StringCredentials.class, credentialRun, List.of());
-      if (credential == null) {
-        throw new AbortException(
-            "Octane URL Secret Text credential was not found or is not accessible to this job. "
-                + "Check shared_url / specific_url in the mapping.");
-      }
-      // Keep only the credential ID in the persisted request, never the decrypted URL.
-      baseUrl = credential.getSecret().getPlainText();
+    try {
+      OctaneServerUrl.requireCredentialId(baseUrl);
+    } catch (IllegalArgumentException e) {
+      throw new AbortException(e.getMessage());
     }
+    StringCredentials credential =
+        credentialRun == null
+            ? CredentialsMatchers.firstOrNull(
+                CredentialsProvider.lookupCredentialsInItemGroup(
+                    StringCredentials.class, Jenkins.get(), ACL.SYSTEM2, List.of()),
+                CredentialsMatchers.withId(baseUrl))
+            : CredentialsProvider.findCredentialById(
+                baseUrl, StringCredentials.class, credentialRun, List.of());
+    if (credential == null) {
+      throw new AbortException(
+          "Octane URL Secret Text credential was not found or is not accessible to this job. "
+              + "Check shared_url / specific_url in the mapping.");
+    }
+    // Keep only the credential ID in the persisted request, never the decrypted URL.
+    baseUrl = credential.getSecret().getPlainText();
     try {
       baseUrl = OctaneServerUrl.normalize(baseUrl);
     } catch (IllegalArgumentException e) {

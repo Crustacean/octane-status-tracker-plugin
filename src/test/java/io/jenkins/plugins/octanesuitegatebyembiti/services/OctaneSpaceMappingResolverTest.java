@@ -27,7 +27,7 @@ public class OctaneSpaceMappingResolverTest {
 
     assertEquals("default_shared_space", connection.serverId());
     assertEquals("default_shared_space", connection.credentialsId());
-    assertEquals("https://octane.example.test", connection.baseUrl());
+    assertEquals("octane-shared-url", connection.baseUrl());
     assertEquals("1001", connection.sharedSpaceId());
     assertEquals("5001", connection.workspaceId());
     assertFalse(connection.insecureTransport());
@@ -38,7 +38,7 @@ public class OctaneSpaceMappingResolverTest {
     FilePath workspace =
         workspaceWithMapping(
             mapping(
-                    "\"specific_url\": \"https://octane-canary.example.test\",",
+                    "\"specific_url\": \"octane-canary-url\",",
                     "\"serverId\": \"octane-canary\",\n"
                         + "      \"apiCredentialId\": \"octane-canary-key\",")
                 .replace("\"1001\"", "1001")
@@ -50,14 +50,13 @@ public class OctaneSpaceMappingResolverTest {
 
     assertEquals("octane-canary", connection.serverId());
     assertEquals("octane-canary-key", connection.credentialsId());
-    assertEquals("https://octane-canary.example.test", connection.baseUrl());
+    assertEquals("octane-canary-url", connection.baseUrl());
     assertFalse(connection.insecureTransport());
   }
 
   @Test
   public void rejectsMissingBaseUrlWithActionableMessage() throws Exception {
-    FilePath workspace =
-        workspaceWithMapping(mapping("", "").replace("https://octane.example.test", ""));
+    FilePath workspace = workspaceWithMapping(mapping("", "").replace("octane-shared-url", ""));
 
     AbortException failure =
         assertThrows(
@@ -78,9 +77,7 @@ public class OctaneSpaceMappingResolverTest {
   @Test
   public void carriesCredentialIdsWithoutDecryptingAndPrefersSpecificUrl() throws Exception {
     for (String override : new String[] {"", "  ", "octane-specific-url"}) {
-      String json =
-          mapping("\"specific_url\": \"" + override + "\",", "")
-              .replace("https://octane.example.test", "octane-shared-url");
+      String json = mapping("\"specific_url\": \"" + override + "\",", "");
       var connection =
           new OctaneSpaceMappingResolver()
               .resolve(workspaceWithMapping(json), "octane_spaces_mapping.json", "1001", "5001");
@@ -100,6 +97,34 @@ public class OctaneSpaceMappingResolverTest {
 
     assertThrows(
         AbortException.class, () -> OctaneSpaceMappingResolver.normalizeMappingFile("config/.."));
+  }
+
+  @Test
+  public void rejectsLiteralUrlsInEitherFieldEvenWhenOverridden() throws Exception {
+    for (String url :
+        new String[] {
+          "https://private.example.test",
+          "http://private.example.test",
+          "//private.example.test",
+          "file:///private/server"
+        }) {
+      for (String json :
+          new String[] {
+            mapping("", "").replace("octane-shared-url", url),
+            mapping("\"specific_url\": \"" + url + "\",", ""),
+            mapping("\"specific_url\": \"valid-override\",", "").replace("octane-shared-url", url)
+          }) {
+        FilePath workspace = workspaceWithMapping(json);
+        AbortException failure =
+            assertThrows(
+                AbortException.class,
+                () ->
+                    new OctaneSpaceMappingResolver()
+                        .resolve(workspace, "octane_spaces_mapping.json", "1001", "5001"));
+        assertTrue(failure.getMessage().contains("Secret Text credential ID"));
+        assertFalse(failure.getMessage().contains("private"));
+      }
+    }
   }
 
   @Test
@@ -157,7 +182,7 @@ public class OctaneSpaceMappingResolverTest {
   private String mapping(String specificUrl, String identifiers) {
     return """
         {
-          "shared_url": "https://octane.example.test",
+          "shared_url": "octane-shared-url",
           "shared_spaces": [{
             "sharedSpaceId": "1001",
             "sharedSpaceName": "Default Shared Space",

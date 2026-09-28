@@ -125,21 +125,22 @@ public final class OctaneSpaceMappingResolver {
               + ".");
     }
 
-    String baseUrl = text(sharedSpace, "specific_url");
-    if (baseUrl.isEmpty()) {
-      baseUrl = text(document, "shared_url");
+    String sharedUrl = text(document, "shared_url");
+    String specificUrl = text(sharedSpace, "specific_url");
+    try {
+      if (!sharedUrl.isEmpty()) {
+        OctaneServerUrl.requireCredentialId(sharedUrl);
+      }
+      if (!specificUrl.isEmpty()) {
+        OctaneServerUrl.requireCredentialId(specificUrl);
+      }
+    } catch (IllegalArgumentException e) {
+      throw new AbortException(e.getMessage());
     }
+    String baseUrl = specificUrl.isEmpty() ? sharedUrl : specificUrl;
     if (baseUrl.isEmpty()) {
       throw new AbortException(
           "Base URL missing for space: " + sharedSpaceName + " in octane_spaces_mapping.json");
-    }
-    try {
-      if (!OctaneServerUrl.isCredentialReference(baseUrl)) {
-        baseUrl = OctaneServerUrl.normalize(baseUrl);
-      }
-    } catch (IllegalArgumentException e) {
-      throw new AbortException(
-          "Base URL for space '" + sharedSpaceName + "' is invalid: " + e.getMessage());
     }
 
     String derivedIdentifier = sharedSpaceName.toLowerCase(Locale.ROOT).replaceAll("\\s+", "_");
@@ -160,7 +161,7 @@ public final class OctaneSpaceMappingResolver {
         sharedSpaceName,
         workspaceId,
         workspaceName,
-        baseUrl.toLowerCase(Locale.ROOT).startsWith("http://"));
+        false);
   }
 
   public static String normalizeMappingFile(String mappingFile) throws AbortException {
