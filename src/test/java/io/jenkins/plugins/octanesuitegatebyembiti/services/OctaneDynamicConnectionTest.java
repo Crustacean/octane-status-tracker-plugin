@@ -16,11 +16,14 @@ import io.jenkins.plugins.octanesuitegatebyembiti.models.GateRequest;
 import io.jenkins.plugins.octanesuitegatebyembiti.repositories.OctaneClient;
 import io.jenkins.plugins.octanesuitegatebyembiti.security.OctaneTestHttpsServer;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.concurrent.atomic.AtomicReference;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -167,6 +170,94 @@ public class OctaneDynamicConnectionTest {
     AbortException failure =
         assertThrows(AbortException.class, () -> new OctaneGateRunner().createClient(request));
     assertTrue(failure.getMessage().contains("https://"));
+  }
+
+  @Test
+  public void secretUrlAuthenticatesAndRemainsAReferenceInPersistedRequest() throws Exception {
+    addUrlCredential("octane-url", baseUrl + "/");
+    addCredentials("octane-api-client", "client", "secret");
+    server.createContext("/authentication/sign_in", exchange -> json(exchange, 200, "{}"));
+    var run = jenkins.buildAndAssertSuccess(jenkins.createFreeStyleProject());
+    GateRequest request = new GateRequest("space", "1196");
+    request.setBaseUrl("octane-url");
+    try (OctaneClient client = new OctaneGateRunner(run).createClient(request)) {
+      client.authenticate();
+    }
+    assertEquals("octane-url", request.getBaseUrl());
+    assertFalse(Jenkins.XSTREAM2.toXML(request).contains(baseUrl));
+    assertFalse(
+        Files.readString(jenkins.jenkins.getRootDir().toPath().resolve("credentials.xml"))
+            .contains(baseUrl));
+  }
+
+  @Test
+  public void missingOrWrongTypeUrlCredentialFailsWithoutFallingBack() throws Exception {
+    addCredentials("octane-url", "client", "secret");
+    for (String id : new String[] {"missing-url", "octane-url"}) {
+      GateRequest request = new GateRequest("space", "1196");
+      request.setBaseUrl(id);
+      assertTrue(
+          assertThrows(AbortException.class, () -> new OctaneGateRunner().createClient(request))
+              .getMessage()
+              .contains("Secret Text"));
+    }
+  }
+
+  @Test
+  public void invalidSecretUrlIsRejectedWithoutLeakingItsValueOrCause() throws Exception {
+    for (String url :
+        new String[] {
+          "",
+          "http://private.example.test",
+          "https://user:secret@private.example.test",
+          "https://private.example.test/?secret=value",
+          "https://private example.test"
+        }) {
+      String id = "url-" + Math.abs(url.hashCode());
+      addUrlCredential(id, url);
+      GateRequest request = new GateRequest("space", "1196");
+      request.setBaseUrl(id);
+      var failure =
+          assertThrows(AbortException.class, () -> new OctaneGateRunner().createClient(request));
+      assertFalse(stackTrace(failure).contains("private"));
+    }
+  }
+
+  @Test
+  public void secretUrlIsNotReflectedInAuthenticationOrApiFailures() throws Exception {
+    addUrlCredential("octane-url", baseUrl);
+    addCredentials("octane-api-client", "client", "secret");
+    server.createContext("/authentication/sign_in", exchange -> json(exchange, 401, baseUrl));
+    GateRequest request = new GateRequest("space", "1196");
+    request.setBaseUrl("octane-url");
+    try (OctaneClient client = new OctaneGateRunner().createClient(request)) {
+      assertFalse(
+          stackTrace(assertThrows(AbortException.class, client::authenticate)).contains(baseUrl));
+      server.removeContext("/authentication/sign_in");
+      server.createContext("/authentication/sign_in", exchange -> json(exchange, 200, "{}"));
+      server.createContext("/api/", exchange -> json(exchange, 403, baseUrl));
+      client.authenticate();
+      assertFalse(
+          stackTrace(
+                  assertThrows(
+                      IOException.class, () -> client.fetchSuiteChildRuns("1001", "5001", "1196")))
+              .contains(baseUrl));
+    }
+  }
+
+  private String stackTrace(Throwable failure) {
+    StringWriter text = new StringWriter();
+    failure.printStackTrace(new PrintWriter(text));
+    return text.toString();
+  }
+
+  private void addUrlCredential(String id, String value) throws Exception {
+    SystemCredentialsProvider.getInstance()
+        .getCredentials()
+        .add(
+            new StringCredentialsImpl(
+                CredentialsScope.GLOBAL, id, "Octane URL", Secret.fromString(value)));
+    SystemCredentialsProvider.getInstance().save();
   }
 
   private void addCredentials(String id, String username, String password) throws Exception {

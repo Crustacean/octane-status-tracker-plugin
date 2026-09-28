@@ -258,7 +258,7 @@ public class OctaneSuiteGateBuilder extends Builder implements SimpleBuildStep {
     OctaneGateReportAction reportAction = OctaneGateReportAction.attachTo(run, request);
     new OctaneGateLogListener().logReportLink(listener, reportAction.getReportUrl());
     try {
-      new OctaneGateRunner().run(request, listener, reportAction);
+      new OctaneGateRunner(run).run(request, listener, reportAction);
     } catch (GateFailedException e) {
       if (delegate.isMarkUnstable()) {
         run.setResult(Result.UNSTABLE);

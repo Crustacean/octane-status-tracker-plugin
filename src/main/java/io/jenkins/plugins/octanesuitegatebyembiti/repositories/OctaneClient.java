@@ -98,6 +98,7 @@ public class OctaneClient implements AutoCloseable {
   private final HttpClient httpClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
   private final String baseUrl;
+  private boolean secretBaseUrl;
   private final String clientId;
   private final Secret clientSecret;
   private final Object childRunFieldProfileLock = new Object();
@@ -116,6 +117,13 @@ public class OctaneClient implements AutoCloseable {
 
   public static OctaneClient withCredentials(String baseUrl, String clientId, Secret clientSecret) {
     return new OctaneClient(SHARED_HTTP_CLIENT, baseUrl, clientId, clientSecret);
+  }
+
+  public static OctaneClient withCredentials(
+      String baseUrl, String clientId, Secret clientSecret, boolean secretBaseUrl) {
+    OctaneClient client = withCredentials(baseUrl, clientId, clientSecret);
+    client.secretBaseUrl = secretBaseUrl;
+    return client;
   }
 
   public OctaneClient(HttpClient httpClient, String baseUrl, String clientId, Secret clientSecret) {
@@ -147,7 +155,7 @@ public class OctaneClient implements AutoCloseable {
           "ALM Octane authentication failed with HTTP "
               + response.statusCode()
               + " for "
-              + request.uri()
+              + diagnosticUri(request)
               + ". Authentication response body omitted to protect credentials.");
     }
     rememberCookies(response.headers());
@@ -1032,7 +1040,7 @@ public class OctaneClient implements AutoCloseable {
       // Parser exception messages can quote remote content, including reflected credentials.
       throw new IOException(
           "ALM Octane returned malformed JSON for "
-              + response.request().uri()
+              + diagnosticUri(response.request())
               + responseBodyMessage(response.body()));
     }
   }
@@ -1106,7 +1114,20 @@ public class OctaneClient implements AutoCloseable {
   private <T> HttpResponse<T> send(HttpRequest request, HttpResponse.BodyHandler<T> bodyHandler)
       throws IOException, InterruptedException {
     OctaneServerUrl.requireAllowedRequest(baseUrl, request.uri());
-    return OctaneRequestCoordinator.send(baseUrl, httpClient, request, bodyHandler);
+    try {
+      return OctaneRequestCoordinator.send(baseUrl, httpClient, request, bodyHandler);
+    } catch (IOException failure) {
+      if (!secretBaseUrl) {
+        throw failure;
+      }
+      // Transport exception causes can expose the hostname even when the message is masked.
+      throw new IOException(
+          "ALM Octane transport failed; verify connectivity and TLS configuration.");
+    }
+  }
+
+  private String diagnosticUri(HttpRequest request) {
+    return secretBaseUrl ? "<configured Octane server>" : request.uri().toString();
   }
 
   private StringResponse sendForString(HttpRequest request)
@@ -1119,7 +1140,7 @@ public class OctaneClient implements AutoCloseable {
             "ALM Octane response exceeded the "
                 + MAX_JSON_RESPONSE_BYTES
                 + " byte safety limit for "
-                + request.uri()
+                + diagnosticUri(request)
                 + ".");
       }
       return new StringResponse(
@@ -1135,13 +1156,19 @@ public class OctaneClient implements AutoCloseable {
         "ALM Octane request failed with HTTP "
             + response.statusCode()
             + " for "
-            + request.uri()
+            + diagnosticUri(request)
             + responseBodyMessage(response.body()));
   }
 
   private String responseBodyMessage(String body) {
     if (body == null || body.isBlank()) {
       return ". Response body: <empty>";
+    }
+    if (secretBaseUrl) {
+      // Preserve capability negotiation without reflecting a secret URL from remote content.
+      return body.contains("platform.unknown_field")
+          ? ". Response code: platform.unknown_field."
+          : ". Response body omitted to protect the server URL.";
     }
     body = redactValue(body, clientSecret.getPlainText());
     if (cookieHeader != null) {

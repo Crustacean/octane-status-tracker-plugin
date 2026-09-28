@@ -134,7 +134,9 @@ public final class OctaneSpaceMappingResolver {
           "Base URL missing for space: " + sharedSpaceName + " in octane_spaces_mapping.json");
     }
     try {
-      baseUrl = OctaneServerUrl.normalize(baseUrl);
+      if (!OctaneServerUrl.isCredentialReference(baseUrl)) {
+        baseUrl = OctaneServerUrl.normalize(baseUrl);
+      }
     } catch (IllegalArgumentException e) {
       throw new AbortException(
           "Base URL for space '" + sharedSpaceName + "' is invalid: " + e.getMessage());

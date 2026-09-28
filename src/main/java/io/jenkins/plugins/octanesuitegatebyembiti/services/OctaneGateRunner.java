@@ -4,6 +4,7 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.AbortException;
+import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.security.ACL;
 import io.jenkins.plugins.octanesuitegatebyembiti.configs.OctaneServerUrl;
@@ -45,6 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 public class OctaneGateRunner {
   private static final Pattern OCTANE_NUMERIC_ID = Pattern.compile("[0-9]{1,18}");
@@ -53,14 +55,24 @@ public class OctaneGateRunner {
   private static final int MAX_DEFECT_GROUPS = 100;
   private final Clock clock;
   private final OctaneGateLogListener logListener;
+  private final Run<?, ?> credentialRun;
 
   public OctaneGateRunner() {
-    this(Clock.systemUTC(), new OctaneGateLogListener());
+    this((Run<?, ?>) null);
+  }
+
+  public OctaneGateRunner(Run<?, ?> run) {
+    this(Clock.systemUTC(), new OctaneGateLogListener(), run);
   }
 
   OctaneGateRunner(Clock clock, OctaneGateLogListener logListener) {
+    this(clock, logListener, null);
+  }
+
+  private OctaneGateRunner(Clock clock, OctaneGateLogListener logListener, Run<?, ?> run) {
     this.clock = clock;
     this.logListener = logListener;
+    this.credentialRun = run;
   }
 
   public GateResult run(GateRequest request, TaskListener listener)
@@ -1345,7 +1357,10 @@ public class OctaneGateRunner {
     ResolvedConnection connection = resolveConnection(request);
     StandardUsernamePasswordCredentials credentials = connection.credentials();
     return OctaneClient.withCredentials(
-        connection.baseUrl(), credentials.getUsername(), credentials.getPassword());
+        connection.baseUrl(),
+        credentials.getUsername(),
+        credentials.getPassword(),
+        OctaneServerUrl.isCredentialReference(request.getBaseUrl()));
   }
 
   private ResolvedConnection resolveConnection(GateRequest request) throws AbortException {
@@ -1356,6 +1371,23 @@ public class OctaneGateRunner {
           "Base URL missing for space: "
               + (spaceName.isEmpty() ? "<unknown>" : spaceName)
               + " in octane_spaces_mapping.json");
+    }
+    if (OctaneServerUrl.isCredentialReference(baseUrl)) {
+      StringCredentials credential =
+          credentialRun == null
+              ? CredentialsMatchers.firstOrNull(
+                  CredentialsProvider.lookupCredentialsInItemGroup(
+                      StringCredentials.class, Jenkins.get(), ACL.SYSTEM2, List.of()),
+                  CredentialsMatchers.withId(baseUrl))
+              : CredentialsProvider.findCredentialById(
+                  baseUrl, StringCredentials.class, credentialRun, List.of());
+      if (credential == null) {
+        throw new AbortException(
+            "Octane URL Secret Text credential was not found or is not accessible to this job. "
+                + "Check shared_url / specific_url in the mapping.");
+      }
+      // Keep only the credential ID in the persisted request, never the decrypted URL.
+      baseUrl = credential.getSecret().getPlainText();
     }
     try {
       baseUrl = OctaneServerUrl.normalize(baseUrl);

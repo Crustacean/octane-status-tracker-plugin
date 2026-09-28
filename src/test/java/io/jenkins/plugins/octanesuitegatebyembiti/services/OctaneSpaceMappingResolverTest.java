@@ -76,6 +76,19 @@ public class OctaneSpaceMappingResolverTest {
   }
 
   @Test
+  public void carriesCredentialIdsWithoutDecryptingAndPrefersSpecificUrl() throws Exception {
+    for (String override : new String[] {"", "  ", "octane-specific-url"}) {
+      String json =
+          mapping("\"specific_url\": \"" + override + "\",", "")
+              .replace("https://octane.example.test", "octane-shared-url");
+      var connection =
+          new OctaneSpaceMappingResolver()
+              .resolve(workspaceWithMapping(json), "octane_spaces_mapping.json", "1001", "5001");
+      assertEquals(override.isBlank() ? "octane-shared-url" : override, connection.baseUrl());
+    }
+  }
+
+  @Test
   public void rejectsPathsOutsideTheWorkspace() {
     AbortException failure =
         assertThrows(

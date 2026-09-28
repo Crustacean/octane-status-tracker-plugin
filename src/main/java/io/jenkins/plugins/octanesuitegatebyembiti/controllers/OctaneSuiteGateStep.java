@@ -516,7 +516,8 @@ public class OctaneSuiteGateStep extends Step {
         throws IOException, InterruptedException {
       if (pollingSession == null) {
         pollingSession =
-            new OctaneGateRunner().openSession(request, listener, reportAction, pollingState);
+            new OctaneGateRunner(getContext().get(Run.class))
+                .openSession(request, listener, reportAction, pollingState);
       }
     }
 

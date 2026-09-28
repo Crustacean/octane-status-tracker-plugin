@@ -79,9 +79,17 @@ machine running the exporter, not by the Jenkins polling job itself.
    Its filename and relative path must match the parent's `OCTANE_SPACES_MAPPING_FILE`
    setting. Regenerate the mapping when spaces change; the export only includes
    spaces the supplied account can access.
-4. Check the mapping's `shared_url`. Each shared space has `"specific_url": ""`;
-   leave it blank to inherit `shared_url`, or set an HTTPS URL for that particular
-   space. Do not place API secrets in this JSON.
+4. Create a Jenkins **Secret text** credential containing the HTTPS Octane base URL
+   (no query, fragment, or embedded username/password). Set `shared_url` to its
+   credential ID, for example `"shared_url": "octane-shared-url"`. Each shared space
+   has `"specific_url": ""`; leave it blank to inherit `shared_url`, or set a
+   different Secret text credential ID for that space. IDs must contain only letters,
+   digits, `_`, `-`, and `.`. A nonblank override that cannot be resolved fails the
+   build; it never silently selects another server. Credentials must be accessible
+   to the executing job (global or its containing folder). Existing literal HTTPS
+   URLs remain supported for migration. The parent can pass the selected ID through
+   the existing `baseUrl` step argument unchanged; the plugin resolves it at runtime
+   and persists only the ID. Do not put the secret URL in Pipeline Groovy or JSON.
 5. Create Jenkins **Username with password** credentials for each Octane connection:
    username = `client_id`, password = `client_secret`. In the relevant shared-space
    JSON object, set `"apiCredentialId": "octane-api-client"` to reference that

@@ -8,6 +8,11 @@ import java.net.URISyntaxException;
 public final class OctaneServerUrl {
   private OctaneServerUrl() {}
 
+  /** Mapping values without a URI scheme are Jenkins Secret Text credential IDs. */
+  public static boolean isCredentialReference(String value) {
+    return Util.trimToEmpty(value).matches("[A-Za-z0-9_.-]+");
+  }
+
   public static String normalize(String value) {
     String candidate = Util.trimTrailingSlash(Util.trimToEmpty(value));
     if (candidate.isEmpty()) {
