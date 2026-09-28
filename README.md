@@ -1,6 +1,6 @@
 # Octane Status Tracker
 
-This is a Jenkins plugin that polls an existing ALM Octane suite runs and evaluates its
+This is a Jenkins plugin that polls existing ALM Octane suite runs and evaluates its
 results against quality gates before a Pipeline stage or Freestyle build proceeds. It
 provides live execution and tester reports, defect analysis, and optional screenshot emails.
 
@@ -75,7 +75,7 @@ The exporter prompts for the client secret when `OCTANE_CLIENT_SECRET` is unset.
 Do not commit secrets or put them in shell command history. Python is needed on the
 machine running the exporter, not by the Jenkins polling job itself.
 
-3. Place the generated `octane_spaces_mapping.json` beside the parent `Jenkinsfile`.
+3. Place the generated `octane_spaces_mapping.json` with the parent `Jenkinsfile`.
    Its filename and relative path must match the parent's `OCTANE_SPACES_MAPPING_FILE`
    setting. Regenerate the mapping when spaces change; the export only includes
    spaces the supplied account can access.
@@ -87,9 +87,6 @@ machine running the exporter, not by the Jenkins polling job itself.
    digits, `_`, `-`, and `.`. A nonblank override that cannot be resolved fails the
    build. Credentials must be accessible to the executing job (global or its containing folder).
    Literal URLs are rejected in both fields, including an overridden `shared_url`.
-   The parent must pass the selected credential ID through
-   the existing `baseUrl` step argument unchanged; the plugin resolves it at runtime
-   and persists only the ID. Do not put the secret URL in Pipeline Groovy or JSON.
 5. Create Jenkins **Username with password** credentials for each Octane connection:
    username = `client_id`, password = `client_secret`. In the relevant shared-space
    JSON object, set `"apiCredentialId": "octane-api-client"` to reference that
@@ -199,23 +196,3 @@ octaneSuiteGate(
 Replace the example IDs with values from the selected Octane workspace. Runtime
 connections do not fall back to Jenkins global server configuration. Use Jenkins'
 Pipeline Syntax Snippet Generator for the complete step configuration.
-
-`suiteRunId` accepts IDs or release selectors. Optional `octaneGateScope` entries
-define additional buckets, such as `critical`. Critical scope takes ownership of
-duplicate suite-run IDs. Metrics use the active, deduplicated suite-run pool.
-
-- `executionRate`: Passed + Failed + Blocked, divided by total tests.
-- `completionRate`: Passed + Failed + Blocked + Skipped, divided by total tests.
-- `passRate`: passed tests divided by executed tests (Passed + Failed + Blocked).
-- In Progress and No Run are not completed tests.
-
-Criteria support scoped variables, arithmetic, comparisons, `AND`, `OR`, parentheses
-and percentage literals. Invalid expressions are rejected before Octane authentication.
-Use `octaneDefectGroup` to define grouped defect criteria. The gate polls at the
-configured interval; request duration adds to the time between polling cycles.
-
-For Freestyle jobs, add **ALM Octane Suite Gate** and configure the mapping file,
-shared space, workspace and criteria. Build reports appear under **Octane Gate Report**.
-The `octaneEmailReport` and `octaneCronProgressEmail` Pipeline steps provide final and
-interval reporting. Email and screenshot features require their configured mail
-transport and a supported browser executable; they are not needed for basic polling.
