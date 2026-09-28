@@ -53,7 +53,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Verify Chrome is available for browser regressions
-        run: google-chrome --version
+      - name: Verify browsers are available for browser regressions
+        run: |
+          google-chrome --version
+          firefox --version
+          geckodriver --version
       - name: Run JavaScript and browser tests
-        run: node --test src/test/javascript/*.test.mjs
+        # Browser test files each launch real processes; avoid contention on shared runners.
+        run: node --test --test-concurrency=1 src/test/javascript/*.test.mjs

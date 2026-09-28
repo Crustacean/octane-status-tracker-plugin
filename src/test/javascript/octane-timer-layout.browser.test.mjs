@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {spawn, spawnSync} from "node:child_process";
 import {existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from "node:fs";
+import {createServer as createHttpServer} from "node:http";
 import {createServer} from "node:net";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
@@ -54,19 +55,25 @@ function availablePort() {
   });
 }
 
-async function webdriverRequest(baseUrl, method, path, body) {
-  const response = await fetch(`${baseUrl}${path}`, {
-    body: body === undefined ? undefined : JSON.stringify(body),
-    headers: {"Content-Type": "application/json"},
-    method,
-    signal: AbortSignal.timeout(10000)
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok || (payload.value && payload.value.error)) {
+async function webdriverRequest(baseUrl, method, path, body, timeoutMs = 10000) {
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: {"Content-Type": "application/json"},
+      method,
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    const payload = await response.json();
+    if (!response.ok || (payload.value && payload.value.error)) {
+      throw new Error(JSON.stringify(payload.value || payload));
+    }
+    return payload.value;
+  } catch (error) {
     throw new Error(
-        `WebDriver ${method} ${path} failed: ${JSON.stringify(payload.value || payload)}`);
+        `WebDriver ${method} ${path} failed (timeout ${timeoutMs}ms): `
+            + `${error.name}: ${error.message || String(error)}`,
+        {cause: error});
   }
-  return payload.value;
 }
 
 async function waitForWebdriver(baseUrl, driver) {
@@ -93,8 +100,13 @@ async function withFirefox(callback) {
   const baseUrl = `http://127.0.0.1:${port}`;
   const driver = spawn(
       geckodriverExecutable,
-      ["--host", "127.0.0.1", "--port", String(port), "--log", "fatal"],
-      {detached: true, stdio: "ignore"});
+      ["--host", "127.0.0.1", "--port", String(port), "--log", "warn"],
+      {detached: true, stdio: ["ignore", "pipe", "pipe"]});
+  let driverLog = "";
+  const capture = chunk => { driverLog = (driverLog + chunk).slice(-4096); };
+  driver.stdout.on("data", capture);
+  driver.stderr.on("data", capture);
+  driver.on("error", error => capture(String(error)));
   let sessionId = "";
   try {
     await waitForWebdriver(baseUrl, driver);
@@ -105,20 +117,24 @@ async function withFirefox(callback) {
           "moz:firefoxOptions": {args: ["-headless"]}
         }
       }
-    });
+    }, 45000); // Cold Firefox startup on a shared CI runner can exceed a command's deadline.
     sessionId = session.sessionId;
     await webdriverRequest(
         baseUrl, "POST", `/session/${sessionId}/timeouts`, {script: 5000});
     await callback({baseUrl, sessionId});
+  } catch (error) {
+    if (driverLog.trim()) {
+      error.message += `\nFirefox driver output:\n${driverLog.trim()}`;
+    }
+    throw error;
   } finally {
     if (sessionId) {
-      await Promise.race([
-        webdriverRequest(baseUrl, "DELETE", `/session/${sessionId}`).catch(() => {}),
-        delay(3000)
-      ]);
+      await webdriverRequest(
+          baseUrl, "DELETE", `/session/${sessionId}`, undefined, 3000).catch(() => {});
     }
     try {
-      driver.kill("SIGKILL");
+      // Kill the detached process group, including Firefox after a failed session creation.
+      if (driver.pid) process.kill(-driver.pid, "SIGKILL");
     } catch (error) {
       // The driver already exited after deleting the session.
     }
@@ -984,6 +1000,8 @@ async function constrainedManagementBarMetrics(driver) {
   const result = await executeAfterPaint(driver, `
     var state = document.querySelector(".octane-management-state-bars");
     var failure = document.querySelector(".octane-management-failure-chart");
+    var stateStyle = state.style.cssText;
+    var failureStyle = failure.style.cssText;
     state.style.width = "72px";
     state.style.maxWidth = "72px";
     state.style.justifySelf = "start";
@@ -1006,7 +1024,7 @@ async function constrainedManagementBarMetrics(driver) {
         .querySelector('[data-management-grid-value="10"]')
         .getBoundingClientRect();
     var failureLabelRect = label.getBoundingClientRect();
-    return {
+    var metrics = {
       failureAxisY: failureAxisY,
       failureAxisRow: failureAxisRow,
       failureBarBottoms: Array.prototype.map.call(
@@ -1051,7 +1069,10 @@ async function constrainedManagementBarMetrics(driver) {
           function (bar) { return bar.getBoundingClientRect().width; }),
       stateClientWidth: state.clientWidth,
       stateScrollWidth: state.scrollWidth
-    };`);
+    };
+    state.style.cssText = stateStyle;
+    failure.style.cssText = failureStyle;
+    return metrics;`);
   if (result.error) {
     throw new Error(result.error);
   }
@@ -1061,7 +1082,6 @@ async function constrainedManagementBarMetrics(driver) {
 async function managementAxisSpacingMetrics(driver) {
   const result = await executeAfterPaint(driver, `
     var rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
-    var legacyPlotOffset = (1.15 + 1.9 + (0.04 * 2)) * rootFontSize;
     return Array.prototype.map.call(
         document.querySelectorAll(
             "#octane-test-management-zone .octane-management-plot-layout"),
@@ -1074,19 +1094,48 @@ async function managementAxisSpacingMetrics(driver) {
           var layoutRect = layout.getBoundingClientRect();
           var plotRect = plot.getBoundingClientRect();
           var style = getComputedStyle(layout);
-          return {
+          var metrics = {
             columnGap: parseFloat(style.columnGap),
+            expectedGap: 0.09 * rootFontSize,
             gridColumns: style.gridTemplateColumns,
             labelWidth: labels.getBoundingClientRect().width,
-            plotGain: legacyPlotOffset - (plotRect.left - layoutRect.left),
+            legacyLabelWidth: 1.9 * rootFontSize,
+            plotRightGap: layoutRect.right - plotRect.right,
             plotWidth: plotRect.width,
             titleWidth: title.getBoundingClientRect().width
           };
+          // Compare actual layout in the same font, not a machine-specific pixel gain.
+          var originalStyle = layout.style.cssText;
+          try {
+            layout.style.gridTemplateColumns = "1.15rem 1.9rem minmax(0, 1fr)";
+            layout.style.columnGap = "0.04rem";
+            var legacyPlotRect = plot.getBoundingClientRect();
+            metrics.plotGain = legacyPlotRect.left - plotRect.left;
+            metrics.widthGain = plotRect.width - legacyPlotRect.width;
+          } finally {
+            layout.style.cssText = originalStyle;
+          }
+          return metrics;
         });`);
   if (result.error) {
     throw new Error(result.error);
   }
   return result.value;
+}
+
+function assertManagementAxisSpacing(metrics, label) {
+  assert.equal(metrics.length, 3);
+  const detail = `${label}: ${JSON.stringify(metrics)}`;
+  assert.ok(metrics.every(metric => Math.abs(metric.columnGap - metric.expectedGap) <= 0.2),
+      `Management axis gap differs from tester progress: ${detail}`);
+  assert.ok(metrics.every(metric => metric.gridColumns.split(" ").length === 3),
+      `Management axis grid lost its three tracks: ${detail}`);
+  assert.ok(metrics.every(metric => metric.labelWidth < metric.legacyLabelWidth),
+      `Tick labels retained the old 1.9rem reservation: ${detail}`);
+  assert.ok(metrics.every(metric => metric.plotGain > 0
+      && Math.abs(metric.widthGain - metric.plotGain) <= 1
+      && Math.abs(metric.plotRightGap) <= 1),
+      `Plot did not absorb the reclaimed axis width: ${detail}`);
 }
 
 async function compactManagementMetricLayout(driver) {
@@ -1467,6 +1516,53 @@ const browserAvailable =
     && executableAvailable("firefox");
 const chromiumAvailable = executableAvailable("google-chrome");
 
+test("WebDriver deadlines allow slow startup and explain transport/protocol failures", async t => {
+  const server = createHttpServer((request, response) => {
+    request.resume();
+    response.setHeader("Content-Type", "application/json");
+    if (request.url === "/session") {
+      setTimeout(() => response.end(JSON.stringify({value: {sessionId: "test-session"}})), 100);
+    } else if (request.url === "/invalid") {
+      response.statusCode = 404;
+      response.end(JSON.stringify({value: {error: "invalid session id", message: "Session ended"}}));
+    }
+    // /hung deliberately sends no response, so the request deadline must abort it.
+  });
+  t.after(() => new Promise(resolve => {
+    server.close(resolve);
+    server.closeAllConnections();
+  }));
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  const url = `http://127.0.0.1:${server.address().port}`;
+  assert.deepEqual(await webdriverRequest(url, "POST", "/session", {}, 2000),
+      {sessionId: "test-session"});
+  await assert.rejects(webdriverRequest(url, "GET", "/hung", undefined, 20), error => {
+    assert.match(error.message, /WebDriver GET \/hung failed \(timeout 20ms\): TimeoutError/);
+    assert.equal(error.cause.name, "TimeoutError");
+    return true;
+  });
+  await assert.rejects(webdriverRequest(url, "GET", "/invalid"),
+      /WebDriver GET \/invalid failed.*invalid session id.*Session ended/);
+});
+
+test(
+    "management plots reclaim axis space across fallback fonts",
+    {skip: !browserAvailable, timeout: 90000},
+    async () => {
+      await withFirefox(async driver => {
+        await webdriverRequest(driver.baseUrl, "POST", `/session/${driver.sessionId}/url`,
+            {url: `data:text/html;base64,${Buffer.from(fixtureHtml()).toString("base64")}`});
+        await setViewport(driver, viewports[0]);
+        for (const [family, size] of [["serif", "16px"], ["sans-serif", "16px"],
+          ["monospace", "18px"]]) {
+          await execute(driver, `
+            document.body.style.fontFamily = arguments[0];
+            document.body.style.fontSize = arguments[1];`, [family, size]);
+          assertManagementAxisSpacing(await managementAxisSpacingMetrics(driver), `${family} ${size}`);
+        }
+      });
+    });
+
 test(
     "timer graphs remain visible in Chromium normal, focused, and expanded modes",
     {skip: !chromiumAvailable, timeout: 60000},
@@ -1503,7 +1599,7 @@ test(
 
 test(
     "activity ring subtitle legend follows each polling payload",
-    {skip: !browserAvailable, timeout: 60000},
+    {skip: !browserAvailable, timeout: 90000},
     async () => {
       await withFirefox(async driver => {
         const fixture = Buffer.from(fixtureHtml()).toString("base64");
@@ -1694,24 +1790,7 @@ test(
           assert.equal(barMetrics.labelTextOverflow, "ellipsis");
           assert.equal(barMetrics.labelWhiteSpace, "nowrap");
           assert.ok(barMetrics.labelScrollWidth > barMetrics.labelClientWidth);
-          const axisMetrics = await managementAxisSpacingMetrics(driver);
-          assert.equal(axisMetrics.length, 3);
-          assert.ok(
-              axisMetrics.every(metric => Math.abs(metric.columnGap - 1.44) <= 0.2),
-              `${viewport.name}: management axis gap differs from tester progress: `
-                  + JSON.stringify(axisMetrics));
-          assert.ok(
-              axisMetrics.every(metric => metric.gridColumns.split(" ").length === 3),
-              `${viewport.name}: management axis grid lost its three tracks: `
-                  + JSON.stringify(axisMetrics));
-          assert.ok(
-              axisMetrics.every(metric => metric.labelWidth < 30.4),
-              `${viewport.name}: tick labels retained the old 1.9rem reservation: `
-                  + JSON.stringify(axisMetrics));
-          assert.ok(
-              axisMetrics.every(metric => metric.plotGain >= 6),
-              `${viewport.name}: plot did not absorb the reclaimed axis width: `
-                  + JSON.stringify(axisMetrics));
+          assertManagementAxisSpacing(await managementAxisSpacingMetrics(driver), viewport.name);
           const testMetrics = await testMetricLayout(
               driver,
               viewport.name === "wide",

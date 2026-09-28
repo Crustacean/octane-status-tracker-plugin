@@ -219,7 +219,7 @@ The current Jenkins baseline compiles the plugin for Java 21.
 
 ```sh
 ./mvnw -B -ntp clean verify
-node --test src/test/javascript/*.test.mjs
+node --test --test-concurrency=1 src/test/javascript/*.test.mjs
 git diff --check
 ```
 
@@ -229,7 +229,9 @@ git diff --check
 
 JavaScript tests need Node.js 22 or newer. Browser regressions use `google-chrome` on
 PATH; Firefox tests additionally need Firefox and geckodriver. Missing browsers cause
-their tests to be skipped. The long-running soak test is opt-in.
+their tests to be skipped locally, but CI requires both browsers and the driver. Run test
+files sequentially to avoid competing browser processes on shared runners. The long-running
+soak test is opt-in.
 `src/test/resources/octane-test-tls.p12` is a test-only HTTPS fixture, not a production
 certificate or trust store. Do not commit build output or production configuration.
 
