@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const jellyPath =
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-    + "OctaneGateReportAction/index.jelly";
-const jelly = readFileSync(jellyPath, "utf8");
-const layoutSource = jelly
+import {reportSource} from "./report-assets.mjs";
+const layoutSource = reportSource
     .split("/* OCTANE_BAR_POPUP_LAYOUT_START */")[1]
     .split("/* OCTANE_BAR_POPUP_LAYOUT_END */")[0];
 const context = {};

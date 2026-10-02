@@ -6,10 +6,7 @@ import vm from "node:vm";
 const source = readFileSync(
     "src/main/webapp/js/octane-test-management.js",
     "utf8");
-const jelly = readFileSync(
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-        + "OctaneGateReportAction/index.jelly",
-    "utf8");
+import {reportSource} from "./report-assets.mjs";
 const context = {window: {}};
 vm.runInNewContext(source, context);
 const testManagement = context.window.OctaneTestManagement;
@@ -29,7 +26,7 @@ test("renders ten discrete execution intervals in bottom-up status order", () =>
   assert.match(source, /payload && payload\.executionIntervals/);
   assert.match(source, /Math\.max\(0, nonNegative\(point\[key\]\) - previous\[key\]\)/);
   assert.match(source, /intervals\.forEach\(function \(interval, partIndex\)/);
-  assert.match(jelly, /flex-direction: column-reverse/);
+  assert.match(reportSource, /flex-direction: column-reverse/);
   assert.doesNotMatch(
       source,
       /STATE_KEYS = \[[^\]]*(?:inProgress|planned)[^\]]*\]/);
@@ -71,12 +68,12 @@ test("renders a counted All pill and category pills without count suffixes", () 
         {key: "ui", label: "UI", count: 4},
         {key: "db", label: "DB", count: 2}
       ]);
-  assert.doesNotMatch(jelly, /data-management-defect-status-filter/);
-  assert.doesNotMatch(jelly, /data-management-failure-status-switcher/);
+  assert.doesNotMatch(reportSource, /data-management-defect-status-filter/);
+  assert.doesNotMatch(reportSource, /data-management-failure-status-switcher/);
   assert.match(source, /key === "all"[\s\S]*?"All " \+ category\.count/);
   assert.match(source, /: category\.label \|\| "Other"/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-row\[hidden\],[\s\S]*?\.octane-management-defect-empty\[hidden\]\s*\{\s*display:\s*none;/);
 });
 
@@ -138,7 +135,7 @@ test("expands the Failure Analysis y-axis gutter for three-plus digit values", (
       source,
       /--octane-management-failure-axis-value-width[\s\S]*?failureAxisValueWidth\(ticks\) \+ "ch"/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-axis-layout\s*\{[^}]*grid-template-columns:\s*1\.35rem var\(--octane-management-failure-axis-value-width\) minmax\(0, 1fr\)/s);
 });
 
@@ -156,10 +153,10 @@ test("binds failure labels and grid lines to the same axis positions", () => {
 test("keeps the failure ceiling line and label one character below the header", () => {
   assert.match(source, /octane-management-failure-axis-track/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-axis-track\s*\{[^}]*inset: 1ch 0 0;[^}]*position: absolute;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-grid-lines\s*\{[^}]*top: 1ch;/s);
 });
 
@@ -185,22 +182,22 @@ test("adds dotted real-time lead and tail tracks to schedule and sprint charts",
   assert.match(source, /renderTimelineSvgAxes\(svg, scale\)/);
   assert.match(source, /renderTimelineHtmlGrid\(plot, scale\)/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-timeline-axis-dotted\s*\{[^}]*stroke-dasharray: 3 7;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-state-bars::before\s*\{[^}]*background-image:[^}]*inset-inline: 0;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-state-bars::after\s*\{[^}]*background: var\(--input-border\);[^}]*inset-inline: 8%;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-x-labels\s*\{[^}]*padding: 0\.25rem 8% 0;/s);
 });
 
 test("reveals the clicked failure bar and matching tab after individual focus opens", () => {
   assert.match(
-      jelly,
+      reportSource,
       /function expandFailureCategory\(categoryBar, category, status\)\s*\{[\s\S]*?expandCard\(card\);[\s\S]*?OctaneTestManagement\.revealFailureCategory\(\s*testManagementZone, category\);/);
   assert.match(source, /function scheduleFailureCategoryReveal\(zone, category\)/);
   assert.match(source, /global\.requestAnimationFrame\(function \(\) \{/);
@@ -227,36 +224,36 @@ test("reveals the clicked failure bar and matching tab after individual focus op
 });
 
 test("opens Test Failure Analysis in individual focus from an email deep link", () => {
-  assert.match(jelly, /function applyDeepLinkedTestFailureFocus\(\)/);
+  assert.match(reportSource, /function applyDeepLinkedTestFailureFocus\(\)/);
   assert.match(
-      jelly,
+      reportSource,
       /parameters\.get\("octaneFocus"\) !== "test-management-failures"/);
   assert.match(
-      jelly,
+      reportSource,
       /parameters\.get\("octaneFocusMode"\) !== "individual"/);
   assert.match(
-      jelly,
+      reportSource,
       /dashboard\.querySelector\(\s*'\[data-card-key="test-management-failures"\]'\)/);
   assert.match(
-      jelly,
+      reportSource,
       /function applyDeepLinkedTestFailureFocus[\s\S]*?expandCard\(card\);/);
-  assert.match(jelly, /applyDeepLinkedTestFailureFocus\(\);/);
+  assert.match(reportSource, /applyDeepLinkedTestFailureFocus\(\);/);
 });
 
 test("keeps focused defect groups on one line with conditional scroll controls", () => {
-  assert.match(jelly, /data-management-failure-tab-nav="true"/);
-  assert.match(jelly, /data-management-category-scroll="-1"/);
-  assert.match(jelly, /data-management-category-scroll="1"/);
-  assert.match(jelly, /aria-label="Scroll defect groups left"/);
-  assert.match(jelly, /aria-label="Scroll defect groups right"/);
+  assert.match(reportSource, /data-management-failure-tab-nav="true"/);
+  assert.match(reportSource, /data-management-category-scroll="-1"/);
+  assert.match(reportSource, /data-management-category-scroll="1"/);
+  assert.match(reportSource, /aria-label="Scroll defect groups left"/);
+  assert.match(reportSource, /aria-label="Scroll defect groups right"/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-switcher\s*\{[^}]*flex-wrap: nowrap;[^}]*overflow-x: auto;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-category-toggle\s*\{[^}]*flex: 0 0 auto;[^}]*white-space: nowrap;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-category-scroll\[data-visible="true"\]\s*\{[^}]*display: inline-flex;/s);
   assert.match(source, /function updateCategoryScrollControls\(container\)/);
   assert.match(source, /navigation\.clientWidth - \(columnGap \* 2\)/);
@@ -274,7 +271,7 @@ test("builds content through safe DOM APIs and no HTML injection", () => {
   assert.match(source, /textContent =/);
   assert.match(source, /document\.createElement/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-description\s*\{[^}]*white-space: pre-line;/s);
 });
 
@@ -387,146 +384,146 @@ test("isolates the defect table to the selected category pill and resets on All"
 });
 
 test("exposes responsive focus, scaling, and card controls", () => {
-  assert.match(jelly, /\.octane-test-management-zone\.octane-zone-focused/);
+  assert.match(reportSource, /\.octane-test-management-zone\.octane-zone-focused/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-test-management-card\s*\{[^}]*flex: 1 1 calc\(25% - 0\.75rem\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-test-management-zone\.octane-zone-focused[\s\S]*nth-of-type\(3\)/);
-  assert.match(jelly, /container-type: size/);
-  assert.match(jelly, /font-size: clamp\(/);
-  assert.match(jelly, /data-card-key="test-management-burndown"/);
-  assert.match(jelly, /data-card-key="test-management-current-state"/);
-  assert.match(jelly, /data-card-key="test-management-failures"/);
-  assert.match(jelly, /data-card-key="test-management-metrics"/);
+  assert.match(reportSource, /container-type: size/);
+  assert.match(reportSource, /font-size: clamp\(/);
+  assert.match(reportSource, /data-card-key="test-management-burndown"/);
+  assert.match(reportSource, /data-card-key="test-management-current-state"/);
+  assert.match(reportSource, /data-card-key="test-management-failures"/);
+  assert.match(reportSource, /data-card-key="test-management-metrics"/);
   assert.equal(new Set(
-      (jelly.match(/data-card-key="test-management-[^"]+"/g) || [])
+      (reportSource.match(/data-card-key="test-management-[^"]+"/g) || [])
           .map((match) => match.slice("data-card-key=\"".length, -1))).size, 4);
 });
 
 test("uses legend-only headers and explicitly labelled vertical axes", () => {
-  assert.match(jelly, /octane-management-subtitle-line/);
+  assert.match(reportSource, /octane-management-subtitle-line/);
   assert.equal(
-      (jelly.match(/data-management-legend="true"/g) || []).length >= 3,
+      (reportSource.match(/data-management-legend="true"/g) || []).length >= 3,
       true);
-  assert.match(jelly, /Testing Against Schedule/);
-  assert.match(jelly, /Execution per Sprint Parts/);
-  assert.doesNotMatch(jelly, /Burn-down Chart/);
-  assert.doesNotMatch(jelly, /Current Execution State/);
-  assert.doesNotMatch(jelly, /Defect Root-Cause Breakdown/);
-  assert.match(jelly, /octane-management-y-axis-title">Total Test cases</);
-  assert.match(jelly, /octane-management-y-axis-title">Tests Executed</);
-  assert.match(jelly, /octane-management-y-axis-title">Defects</);
+  assert.match(reportSource, /Testing Against Schedule/);
+  assert.match(reportSource, /Execution per Sprint Parts/);
+  assert.doesNotMatch(reportSource, /Burn-down Chart/);
+  assert.doesNotMatch(reportSource, /Current Execution State/);
+  assert.doesNotMatch(reportSource, /Defect Root-Cause Breakdown/);
+  assert.match(reportSource, /octane-management-y-axis-title">Total Test cases</);
+  assert.match(reportSource, /octane-management-y-axis-title">Tests Executed</);
+  assert.match(reportSource, /octane-management-y-axis-title">Defects</);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-subtitle-line\s*\{[^}]*flex-wrap: nowrap;[^}]*overflow-x: auto;/s);
 });
 
 test("matches timer heights and preserves bounded scrollable bar tracks", () => {
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-timer-zone:not\(\.octane-zone-focused\)[\s\S]*?height: 280px;[\s\S]*?max-height: 280px;[\s\S]*?min-height: 280px;/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-test-management-zone:not\(\.octane-zone-focused\)[\s\S]*?> \.octane-test-management-card:not\(\.octane-expanded\)/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-state-bars\s*\{[^}]*--octane-management-bar-gap: clamp\(2px, 1cqw, 40px\);[^}]*--octane-management-bar-width: clamp\(8px, 4cqw, 100px\);[^}]*overflow-x: auto;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-state-column\s*\{[^}]*max-width: 100px;[^}]*min-width: 8px;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-chart\s*\{[^}]*overflow-x: hidden;[^}]*scrollbar-width: none;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-chart-card\[data-card-key="test-management-failures"\]\.octane-expanded\s*\.octane-management-failure-chart\s*\{[^}]*overflow-x: auto;[^}]*overscroll-behavior-inline: contain;[^}]*scrollbar-color: var\(--octane-management-scrollbar-thumb\) transparent;[^}]*scrollbar-gutter: stable;[^}]*scrollbar-width: thin;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-chart-card\[data-card-key="test-management-failures"\]\.octane-expanded\s*\.octane-management-failure-chart::-webkit-scrollbar\s*\{[^}]*height: 6px;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-chart-card\[data-card-key="test-management-failures"\]\.octane-expanded\s*\.octane-management-failure-chart::-webkit-scrollbar-track\s*\{[^}]*background: transparent;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-chart-card\[data-card-key="test-management-failures"\]\.octane-expanded\s*\.octane-management-failure-chart::-webkit-scrollbar-thumb\s*\{[^}]*background: var\(--octane-management-scrollbar-thumb\);[^}]*border-radius: 999px;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-bar\s*\{[^}]*max-width: 100px;[^}]*min-width: 8px;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-label\s*\{[^}]*overflow: hidden;[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;/s);
 });
 
 test("keeps standard grid axes, rounded metric tiles, and capsule pills", () => {
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-plot-layout\s*\{[^}]*--octane-management-axis-gap: 0\.09rem;[^}]*column-gap: var\(--octane-management-axis-gap\)[^}]*grid-template-columns:\s*1\.35rem max-content minmax\(0, 1fr\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-bar-graph\s*\{[^}]*column-gap: 0\.09rem;[^}]*grid-template-columns: 1\.35rem max-content minmax\(0, 1fr\)/s);
-  assert.match(jelly, /\.octane-management-timeline-axis-line/);
-  assert.match(jelly, /\.octane-management-state-bars::after/);
-  assert.match(jelly, /\.octane-management-failure-grid-lines/);
-  assert.match(jelly, /\.octane-management-failure-grid-line/);
-  assert.match(jelly, /\.octane-management-failure-chart::after/);
+  assert.match(reportSource, /\.octane-management-timeline-axis-line/);
+  assert.match(reportSource, /\.octane-management-state-bars::after/);
+  assert.match(reportSource, /\.octane-management-failure-grid-lines/);
+  assert.match(reportSource, /\.octane-management-failure-grid-line/);
+  assert.match(reportSource, /\.octane-management-failure-chart::after/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-axis-layout\s*\{[^}]*--octane-management-failure-axis-row: 1\.65rem;[^}]*grid-template-rows:\s*minmax\(0, 1fr\) var\(--octane-management-failure-axis-row\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-axis-layout\s*> \.octane-management-y-labels\s*\{[^}]*display: block;[^}]*overflow: visible;[^}]*padding: 0;[^}]*position: relative;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-axis-layout[\s\S]*?> \.octane-management-y-labels[\s\S]*?\.octane-management-failure-axis-track \.octane-management-axis-value\s*\{[^}]*top: var\(--octane-management-axis-position\);[^}]*transform: translateY\(-50%\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-group\s*\{[^}]*grid-template-rows:\s*minmax\(0, 1fr\) var\(--octane-management-failure-axis-row\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-failure-chart::after\s*\{[^}]*bottom: calc\(var\(--octane-management-failure-axis-row\) - 1px\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-tile\s*\{[^}]*border-radius: 12px/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-pill\s*\{[^}]*border-radius: 9999px[^}]*padding:\s*clamp\(0\.25rem, 1cqi, 0\.4rem\)\s*clamp\(0\.4rem, 1\.5cqi, 0\.75rem\)/s);
 });
 
 test("scales testing metric typography inside compact quadrant containers", () => {
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metrics-grid\s*\{[^}]*container-name: octane-management-metrics;[^}]*container-type: size;[^}]*gap: clamp\(0\.35rem, min\(1\.8cqi, 2\.5cqh\), 1rem\);[^}]*grid-template-rows: minmax\(0, 1fr\) minmax\(0, 1\.5fr\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-tile\s*\{[^}]*align-items: center;[^}]*overflow: hidden;[^}]*text-align: center;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-title\s*\{[^}]*font-size: clamp\(0\.65rem, min\(2\.6cqi, 5cqh\), 1\.15rem\);[^}]*font-weight: 600;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-value\s*\{[^}]*font-size: clamp\(1\.1rem, min\(5cqi, 10cqh\), 2\.7rem\);[^}]*font-weight: 700;/s);
   assert.match(
-      jelly,
+      reportSource,
       /@container octane-management-metrics\s*\(max-width: 15rem\) or \(max-height: 10rem\)[\s\S]*?\.octane-management-metric-value\s*\{[^}]*font-size: clamp\(0\.56rem, min\(5\.5cqi, 6cqh\), 0\.88rem\)/s);
 });
 
 test("clips every metric quadrant and keeps tester rows on one line", () => {
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-tile\s*\{[^}]*overflow: hidden;[^}]*padding: clamp\(0\.35rem, min\(2\.2cqi, 3cqh\), 1rem\);/s);
   assert.match(
       source,
       /tile\.setAttribute\(\s*"data-management-metric-key",\s*String\(metric\.key \|\| ""\)\.trim\(\)\.toLowerCase\(\)\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-items li\s*\{[^}]*display: grid;[^}]*grid-template-columns: minmax\(0, 1fr\) max-content;/s);
   assert.match(
-      jelly,
+      reportSource,
       /data-management-metric-key="tester-volume"[\s\S]*?\.octane-management-metric-item-value\s*\{[^}]*grid-template-columns: minmax\(7ch, max-content\) 0\.5ch 4ch;[^}]*margin-inline-end: 1ch;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-metric-items > li > span\s*\{[^}]*overflow: hidden;[^}]*text-overflow: ellipsis;[^}]*white-space: nowrap;/s);
   assert.match(source, /item\.primaryValue != null/);
   assert.match(source, /octane-management-metric-item-secondary/);
@@ -625,22 +622,22 @@ test("renders an accessible sticky four-column sort header with persistent state
       source,
       /state\.column === column && state\.direction === "ascending"[\s\S]*?\? "descending"[\s\S]*?: "ascending"/);
   assert.match(
-      jelly,
+      reportSource,
       /data-sort-column="id" data-sort-direction="ascending"[\s\S]*?role="table" aria-colcount="4"/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-header\s*\{[^}]*position: sticky;[^}]*z-index: 2;/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-sort\s*\{[^}]*font-size: clamp\(0\.6188rem, 1\.8785cqi, 0\.7956rem\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-sort-indicator::before\s*\{[^}]*content: "\\2195";/s);
   assert.match(
-      jelly,
+      reportSource,
       /\[aria-sort="ascending"\][\s\S]*?\.octane-management-defect-sort-indicator::before\s*\{[^}]*content: "\\2191";/s);
   assert.match(
-      jelly,
+      reportSource,
       /\[aria-sort="descending"\][\s\S]*?\.octane-management-defect-sort-indicator::before\s*\{[^}]*content: "\\2193";/s);
 });
 
@@ -670,33 +667,33 @@ test("resolves semantic chart and metric colors from the active theme", () => {
     ["--octane-system-purple", "#AF52DE", "#BF5AF2"],
     ["--octane-system-gray", "#8E8E93", "#8E8E93"]
   ].forEach(([property, light, dark]) => {
-    assert.match(jelly, new RegExp(`${property}: ${light}`));
+    assert.match(reportSource, new RegExp(`${property}: ${light}`));
     if (light !== dark) {
-      assert.match(jelly, new RegExp(`${property}: ${dark}`));
+      assert.match(reportSource, new RegExp(`${property}: ${dark}`));
     }
   });
-  assert.match(jelly, /--octane-severity-critical: var\(--octane-system-red\)/);
-  assert.match(jelly, /--octane-severity-very-high: var\(--octane-system-yellow\)/);
-  assert.match(jelly, /--octane-severity-high: var\(--octane-system-orange\)/);
-  assert.match(jelly, /--octane-severity-medium: var\(--octane-system-purple\)/);
-  assert.match(jelly, /--octane-severity-unspecified: var\(--octane-system-gray\)/);
+  assert.match(reportSource, /--octane-severity-critical: var\(--octane-system-red\)/);
+  assert.match(reportSource, /--octane-severity-very-high: var\(--octane-system-yellow\)/);
+  assert.match(reportSource, /--octane-severity-high: var\(--octane-system-orange\)/);
+  assert.match(reportSource, /--octane-severity-medium: var\(--octane-system-purple\)/);
+  assert.match(reportSource, /--octane-severity-unspecified: var\(--octane-system-gray\)/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-tone-good\s*\{[^}]*background: var\(--octane-color-good\);[^}]*color: var\(--octane-color-on-emphasis\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-tone-warning\s*\{[^}]*background: var\(--octane-system-orange\);[^}]*color: var\(--octane-color-on-emphasis\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-tone-bad\s*\{[^}]*background: var\(--octane-color-bad\);[^}]*color: var\(--octane-color-on-emphasis\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-tone-neutral\s*\{[^}]*background: var\(--octane-system-gray\);[^}]*color: var\(--octane-color-on-emphasis\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-category-toggle\[aria-pressed="true"\]\s*\{[^}]*background: var\(--octane-color-neutral\);[^}]*color: var\(--octane-color-on-emphasis\);/s);
   assert.doesNotMatch(
-      jelly,
+      reportSource,
       /\.octane-management-tone-(?:good|warning|bad|neutral)\s*\{[^}]*(?:#34C759|#FF3B30|#FF9500|#8E8E93|#ffffff)/s);
 });
 
@@ -718,10 +715,10 @@ test("renders QA metrics through the relocated pass-rate face", () => {
   assert.match(
       source,
       /options && options\.metricsRoot \? options\.metricsRoot : zone/);
-  assert.match(jelly, /function installAnalyticsComponentSwap\(root\)/);
-  assert.match(jelly, /metricsFace\.setAttribute\("data-card-view", "metrics"\)/);
-  assert.match(jelly, /managementCard\.setAttribute\("data-card-key", "test-management-defects"\)/);
-  assert.match(jelly, /metricsRoot: managementMetricsRoot/);
+  assert.match(reportSource, /function installAnalyticsComponentSwap\(root\)/);
+  assert.match(reportSource, /metricsFace\.setAttribute\("data-card-view", "metrics"\)/);
+  assert.match(reportSource, /managementCard\.setAttribute\("data-card-key", "test-management-defects"\)/);
+  assert.match(reportSource, /metricsRoot: managementMetricsRoot/);
 });
 
 test("keeps defect ids, descriptions, status, and severity in aligned columns", () => {
@@ -730,32 +727,32 @@ test("keeps defect ids, descriptions, status, and severity in aligned columns", 
       source,
       /row\.appendChild\(identifier\);\s*row\.appendChild\(description\);\s*row\.appendChild\(status\);\s*row\.appendChild\(severity\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-header,[\s\S]*?\.octane-management-defect-row\s*\{[^}]*display: grid;[^}]*grid-template-columns: var\(--octane-management-defect-columns\);/s);
   assert.match(
-      jelly,
+      reportSource,
       /--octane-management-pill-width:\s*clamp\(6\.25rem, calc\(11ch \+ 1\.5rem\), 8\.5rem\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /--octane-management-defect-id-width:\s*clamp\(4rem, 13cqi, 6rem\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /--octane-management-defect-columns:\s*var\(--octane-management-defect-id-width\) minmax\(0, 1fr\)\s*repeat\(2, var\(--octane-management-pill-width\)\)/s);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-management-defect-pill\s*\{[^}]*inline-size: 100%[^}]*text-align: center;/s);
   assert.match(
-      jelly,
+      reportSource,
       /@container octane-management-defects \(max-width: 32rem\)/);
   assert.match(
-      jelly,
+      reportSource,
       /@container octane-management-defects \(max-width: 22rem\)/);
 });
 
 test("places test management between timer and reporting zones", () => {
-  const timerIndex = jelly.indexOf("id=\"octane-timer-zone\"");
-  const managementIndex = jelly.indexOf("id=\"octane-test-management-zone\"");
-  const reportIndex = jelly.indexOf("id=\"octane-report-zone\"");
+  const timerIndex = reportSource.indexOf("id=\"octane-timer-zone\"");
+  const managementIndex = reportSource.indexOf("id=\"octane-test-management-zone\"");
+  const reportIndex = reportSource.indexOf("id=\"octane-report-zone\"");
 
   assert.ok(timerIndex >= 0);
   assert.ok(managementIndex > timerIndex);

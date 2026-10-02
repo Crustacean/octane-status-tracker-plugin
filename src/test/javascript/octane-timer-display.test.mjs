@@ -1,19 +1,15 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const jellyPath =
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-    + "OctaneGateReportAction/index.jelly";
-const jelly = readFileSync(jellyPath, "utf8");
-const timerDisplaySource = jelly
+import {reportSource} from "./report-assets.mjs";
+const timerDisplaySource = reportSource
     .split("/* OCTANE_TIMER_DISPLAY_START */")[1]
     .split("/* OCTANE_TIMER_DISPLAY_END */")[0];
 
 function cssRule(selector) {
   const escapedSelector = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = jelly.match(new RegExp(`(?:^|\\n)\\s*${escapedSelector}\\s*\\{([^}]*)\\}`));
+  const match = reportSource.match(new RegExp(`(?:^|\\n)\\s*${escapedSelector}\\s*\\{([^}]*)\\}`));
   assert.ok(match, `Missing CSS rule for ${selector}`);
   return match[1];
 }
@@ -113,17 +109,17 @@ test("switches the timeout card to elapsed time for both terminal paths", () => 
       context.timeoutTimerShowsSpent(
           {active: false, manualExitRequestedAtMillis: 0, mode: "poll"}),
       false);
-  assert.match(jelly, /data-timeout-subtitle="true"/);
-  assert.match(jelly, /showSpent \? testingTimeSpentMillis\(state, now\) : trackRemaining/);
-  assert.match(jelly, /showSpent \? "Session Time Spent" : "Session Time Remaining"/);
-  assert.match(jelly, /showSpent \? "Testing time spent: " : "Testing time remaining: "/);
+  assert.match(reportSource, /data-timeout-subtitle="true"/);
+  assert.match(reportSource, /showSpent \? testingTimeSpentMillis\(state, now\) : trackRemaining/);
+  assert.match(reportSource, /showSpent \? "Session Time Spent" : "Session Time Remaining"/);
+  assert.match(reportSource, /showSpent \? "Testing time spent: " : "Testing time remaining: "/);
 });
 
 test("renders full and compact labels with component and mobile breakpoints", () => {
   const timerWrapRule = cssRule(".octane-timer-wrap");
   const timerDonutRule = cssRule(".octane-timer-donut");
 
-  assert.match(jelly, /data-timer-unit-compact="true"/);
+  assert.match(reportSource, /data-timer-unit-compact="true"/);
   assert.match(timerWrapRule, /container-name:\s*octane-timer-display/);
   assert.match(timerWrapRule, /flex:\s*1 1 auto/);
   assert.match(timerWrapRule, /height:\s*100%/);
@@ -139,51 +135,51 @@ test("renders full and compact labels with component and mobile breakpoints", ()
   assert.match(
       cssRule(".octane-chart-card.octane-expanded .octane-timer-donut"),
       /height:\s*min\(100cqw,\s*100cqh,\s*76vh,\s*76vw\)/);
-  assert.match(jelly, /@container octane-timer-display \(max-width: 18rem\)/);
-  assert.match(jelly, /@media \(max-width: 480px\)/);
-  assert.match(jelly, /\.octane-timer-unit-compact\s*{\s*display:\s*none;/);
+  assert.match(reportSource, /@container octane-timer-display \(max-width: 18rem\)/);
+  assert.match(reportSource, /@media \(max-width: 480px\)/);
+  assert.match(reportSource, /\.octane-timer-unit-compact\s*{\s*display:\s*none;/);
 });
 
 test("renders the dynamic job and polling status state machine", () => {
-  assert.match(jelly, /data-report-status="true"/);
-  assert.match(jelly, /Status Check In :/);
-  assert.match(jelly, /Updating \.\.\. /);
-  assert.match(jelly, /LAST UPDATED: /);
-  assert.match(jelly, /data-report-finalizing="\$\{snapshot\.finalizing\}"/);
-  assert.match(jelly, /function canApplySnapshotPayload\(payload\)/);
-  assert.match(jelly, /incomingUpdatedAt < renderedUpdatedAt/);
-  assert.match(jelly, /liveRefresh\.finalizing \? 250/);
-  assert.doesNotMatch(jelly, /function fetchRiskHeatMapSnapshot\(\)/);
-  assert.match(jelly, /function formatClockDuration\(milliseconds\)/);
-  assert.match(jelly, /function renderReportStatus\(now\)/);
-  assert.match(jelly, /payload\.jobStateLabel/);
-  assert.match(jelly, /payload\.updatedAtDateTimeText/);
-  assert.doesNotMatch(jelly, /formatLastUpdatedStatus/);
+  assert.match(reportSource, /data-report-status="true"/);
+  assert.match(reportSource, /Status Check In :/);
+  assert.match(reportSource, /Updating \.\.\. /);
+  assert.match(reportSource, /LAST UPDATED: /);
+  assert.match(reportSource, /data-report-finalizing="\$\{snapshot\.finalizing\}"/);
+  assert.match(reportSource, /function canApplySnapshotPayload\(payload\)/);
+  assert.match(reportSource, /incomingUpdatedAt < renderedUpdatedAt/);
+  assert.match(reportSource, /liveRefresh\.finalizing \? 250/);
+  assert.doesNotMatch(reportSource, /function fetchRiskHeatMapSnapshot\(\)/);
+  assert.match(reportSource, /function formatClockDuration\(milliseconds\)/);
+  assert.match(reportSource, /function renderReportStatus\(now\)/);
+  assert.match(reportSource, /payload\.jobStateLabel/);
+  assert.match(reportSource, /payload\.updatedAtDateTimeText/);
+  assert.doesNotMatch(reportSource, /formatLastUpdatedStatus/);
 });
 
 test("retains the last populated heat map through final reconciliation", () => {
   assert.match(
-      jelly,
+      reportSource,
       /data-risk-heat-map-populated="\$\{snapshot\.riskHeatMap\.populatedData\}"/);
-  assert.match(jelly, /var lastViableRiskHeatMapHtml/);
-  assert.match(jelly, /payload\.finalizing === true \|\| payload\.building === false/);
-  assert.match(jelly, /terminalUpdate && payload\.riskHeatMapPopulated !== true/);
-  assert.match(jelly, /heatMapPanel\.innerHTML = lastViableRiskHeatMapHtml/);
-  assert.match(jelly, /fetchSnapshot\(true\)/);
+  assert.match(reportSource, /var lastViableRiskHeatMapHtml/);
+  assert.match(reportSource, /payload\.finalizing === true \|\| payload\.building === false/);
+  assert.match(reportSource, /terminalUpdate && payload\.riskHeatMapPopulated !== true/);
+  assert.match(reportSource, /heatMapPanel\.innerHTML = lastViableRiskHeatMapHtml/);
+  assert.match(reportSource, /fetchSnapshot\(true\)/);
 });
 
 test("uses three equal activity rings with thirty-percent tighter edge gaps", () => {
-  const radii = [...jelly.matchAll(/data-activity-ring="[^"]+"[^>]*r="([\d.]+)"/g)]
+  const radii = [...reportSource.matchAll(/data-activity-ring="[^"]+"[^>]*r="([\d.]+)"/g)]
       .map(match => Number(match[1]));
   assert.deepEqual(radii, [84, 64.5, 45]);
   assert.equal(radii[0] - radii[1] - 16, 3.5);
   assert.equal(radii[1] - radii[2] - 16, 3.5);
-  assert.match(jelly, /\.octane-activity-ring-track,[\s\S]*?stroke-width: 16;/);
-  assert.match(jelly, /\.octane-activity-ring-track\s*{\s*opacity: 0\.2;/);
-  assert.match(jelly, /stroke-linecap: round/);
-  assert.match(jelly, /stroke: #FA114F/);
-  assert.match(jelly, /stroke: #A6FF00/);
-  assert.match(jelly, /stroke: #00FFF6/);
+  assert.match(reportSource, /\.octane-activity-ring-track,[\s\S]*?stroke-width: 16;/);
+  assert.match(reportSource, /\.octane-activity-ring-track\s*{\s*opacity: 0\.2;/);
+  assert.match(reportSource, /stroke-linecap: round/);
+  assert.match(reportSource, /stroke: #FA114F/);
+  assert.match(reportSource, /stroke: #A6FF00/);
+  assert.match(reportSource, /stroke: #00FFF6/);
 });
 
 test("matches the timer ring bounds and centers the activity rings", () => {
@@ -224,50 +220,50 @@ test("renders a single-line activity subtitle with compact-label and ellipsis fa
 
 test("depletes the testing session monitor counter-clockwise from twelve o'clock", () => {
   assert.match(
-      jelly,
+      reportSource,
       /<circle class="octane-timer-progress" data-timer-progress="true"[\s\S]*?transform="rotate\(-90 120 120\)"/);
   assert.doesNotMatch(
-      jelly,
+      reportSource,
       /M120 36 A84 84 0 1 0 120 204 A84 84 0 1 0 120 36/);
   assert.match(
-      jelly,
+      reportSource,
       /state\.progressCircle\.style\.strokeDasharray\s*=\s*trimNumber\(remainingProgress\) \+ " 100"/);
 });
 
 test("renders two-decimal inline and conditional side activity legends", () => {
-  assert.doesNotMatch(jelly, /Target Achievement/);
-  assert.match(jelly, /octane-activity-subtitle/);
-  assert.match(jelly, />Execution Rate<\/span>/);
-  assert.match(jelly, />Pass Rate<\/span>/);
-  assert.match(jelly, />Automation Usage<\/span>/);
-  assert.match(jelly, />Execution<\/span>/);
-  assert.match(jelly, />Pass<\/span>/);
-  assert.match(jelly, />Automation<\/span>/);
-  assert.match(jelly, /@container octane-activity-legend \(max-width: 34rem\)/);
-  assert.match(jelly, /class="octane-activity-side-legend"/);
-  assert.match(jelly, /table-layout: fixed/);
-  assert.match(jelly, /font-variant-numeric: tabular-nums/);
-  assert.match(jelly, /@container octane-activity-rings \(min-width: 36rem\)/);
-  assert.match(jelly, /data-side-legend-visible="true"/);
-  assert.match(jelly, /data-side-legend-visible="true"\][\s\S]*?display: table;/);
-  assert.match(jelly, /inset-inline-end:\s*0/);
-  assert.match(jelly, /position:\s*absolute/);
-  assert.match(jelly, /transform:\s*translateY\(-50%\)/);
-  assert.match(jelly, /data-activity-inline-legend="true"/);
-  assert.match(jelly, /var activityFace = component\.closest\("\.octane-flip-face"\)/);
+  assert.doesNotMatch(reportSource, /Target Achievement/);
+  assert.match(reportSource, /octane-activity-subtitle/);
+  assert.match(reportSource, />Execution Rate<\/span>/);
+  assert.match(reportSource, />Pass Rate<\/span>/);
+  assert.match(reportSource, />Automation Usage<\/span>/);
+  assert.match(reportSource, />Execution<\/span>/);
+  assert.match(reportSource, />Pass<\/span>/);
+  assert.match(reportSource, />Automation<\/span>/);
+  assert.match(reportSource, /@container octane-activity-legend \(max-width: 34rem\)/);
+  assert.match(reportSource, /class="octane-activity-side-legend"/);
+  assert.match(reportSource, /table-layout: fixed/);
+  assert.match(reportSource, /font-variant-numeric: tabular-nums/);
+  assert.match(reportSource, /@container octane-activity-rings \(min-width: 36rem\)/);
+  assert.match(reportSource, /data-side-legend-visible="true"/);
+  assert.match(reportSource, /data-side-legend-visible="true"\][\s\S]*?display: table;/);
+  assert.match(reportSource, /inset-inline-end:\s*0/);
+  assert.match(reportSource, /position:\s*absolute/);
+  assert.match(reportSource, /transform:\s*translateY\(-50%\)/);
+  assert.match(reportSource, /data-activity-inline-legend="true"/);
+  assert.match(reportSource, /var activityFace = component\.closest\("\.octane-flip-face"\)/);
   assert.match(
-      jelly,
+      reportSource,
       /activityFace\.querySelectorAll\('\[data-activity-rate=/);
   assert.match(
-      jelly,
+      reportSource,
       /inlineLegend\.setAttribute\("aria-label", labels\.join\(", "\)\)/);
-  assert.match(jelly, /querySelectorAll\('\[data-activity-rate=/);
-  assert.match(jelly, /rate\.toFixed\(2\) \+ "%"/);
-  assert.match(jelly, /function fitActivityRingLegend\(component\)/);
-  assert.match(jelly, /new window\.ResizeObserver\(scheduleActivityRingLayout\)/);
-  assert.match(jelly, /intersectsHorizontally/);
-  assert.match(jelly, /intersectsVertically/);
-  assert.match(jelly, /scheduleActivityRingLayout\(\)/);
+  assert.match(reportSource, /querySelectorAll\('\[data-activity-rate=/);
+  assert.match(reportSource, /rate\.toFixed\(2\) \+ "%"/);
+  assert.match(reportSource, /function fitActivityRingLegend\(component\)/);
+  assert.match(reportSource, /new window\.ResizeObserver\(scheduleActivityRingLayout\)/);
+  assert.match(reportSource, /intersectsHorizontally/);
+  assert.match(reportSource, /intersectsVertically/);
+  assert.match(reportSource, /scheduleActivityRingLayout\(\)/);
 });
 
 test("keeps Tester Details headers single-line with responsive prefixes", () => {
@@ -288,21 +284,21 @@ test("keeps Tester Details headers single-line with responsive prefixes", () => 
   assert.match(headerRule, /text-align:\s*right/);
   assert.match(headerRule, /text-wrap:\s*nowrap/);
   assert.match(headerRule, /white-space:\s*nowrap/);
-  assert.match(jelly, /@container tester-tracker \(max-width: 24rem\)/);
-  assert.match(jelly, /function updateTesterTrackerTitle\(title, condition\)/);
-  assert.match(jelly, /var fullText = "Testers with LESS THAN " \+ condition/);
-  assert.match(jelly, /conditionElement\.textContent = condition/);
-  assert.doesNotMatch(jelly, /\.octane-tester-email-column\s*,/);
+  assert.match(reportSource, /@container tester-tracker \(max-width: 24rem\)/);
+  assert.match(reportSource, /function updateTesterTrackerTitle\(title, condition\)/);
+  assert.match(reportSource, /var fullText = "Testers with LESS THAN " \+ condition/);
+  assert.match(reportSource, /conditionElement\.textContent = condition/);
+  assert.doesNotMatch(reportSource, /\.octane-tester-email-column\s*,/);
   assert.equal(
-      (jelly.match(/class="octane-tester-rate octane-tester-rate-header"/g) || []).length,
+      (reportSource.match(/class="octane-tester-rate octane-tester-rate-header"/g) || []).length,
       2);
   assert.equal(
-      (jelly.match(/class="octane-tester-responsive-prefix"/g) || []).length,
+      (reportSource.match(/class="octane-tester-responsive-prefix"/g) || []).length,
       4);
   assert.equal(
-      (jelly.match(/class="octane-tester-comparison-full"/g) || []).length,
+      (reportSource.match(/class="octane-tester-comparison-full"/g) || []).length,
       2);
   assert.equal(
-      (jelly.match(/class="octane-tester-comparison-compact"/g) || []).length,
+      (reportSource.match(/class="octane-tester-comparison-compact"/g) || []).length,
       2);
 });

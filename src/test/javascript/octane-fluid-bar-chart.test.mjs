@@ -1,13 +1,9 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const jellyPath =
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-    + "OctaneGateReportAction/index.jelly";
-const jelly = readFileSync(jellyPath, "utf8");
-const fluidMathSource = jelly
+import {reportSource} from "./report-assets.mjs";
+const fluidMathSource = reportSource
     .split("/* OCTANE_FLUID_BAR_CHART_START */")[1]
     .split("/* OCTANE_FLUID_BAR_CHART_END */")[0];
 const context = {isFinite};
@@ -46,39 +42,39 @@ test("scales bar width and gap within the configured bounds", () => {
 });
 
 test("renders a concise overflow count at the x-axis trail", () => {
-  assert.match(jelly, /count\.textContent = "\+" \+ hiddenCount/);
-  assert.doesNotMatch(jelly, /hiddenCount \+ " more\.\.\."/);
+  assert.match(reportSource, /count\.textContent = "\+" \+ hiddenCount/);
+  assert.doesNotMatch(reportSource, /hiddenCount \+ " more\.\.\."/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-vertical-bars \{[\s\S]*?gap: var\(--octane-bar-gap,[\s\S]*?justify-content: center;/);
   assert.match(
-      jelly,
+      reportSource,
       /\.octane-suite-column \{[\s\S]*?flex: 1 1 auto;[\s\S]*?max-width: 100px;[\s\S]*?min-width: 8px !important;/);
-  assert.doesNotMatch(jelly, /margin-right: 2px !important;/);
+  assert.doesNotMatch(reportSource, /margin-right: 2px !important;/);
 });
 
 test("retains the largest right-hand bars when the viewport truncates", () => {
   assert.match(
-      jelly,
+      reportSource,
       /allSuiteRuns\.slice\([\s\S]*?Math\.max\(0, allSuiteRuns\.length - maxVisibleBars\)\)/);
-  assert.doesNotMatch(jelly, /allSuiteRuns\.slice\(0, maxVisibleBars\)/);
+  assert.doesNotMatch(reportSource, /allSuiteRuns\.slice\(0, maxVisibleBars\)/);
 });
 
 test("uses the same fluid bar constraints in individual focused mode", () => {
   assert.doesNotMatch(
-      jelly,
+      reportSource,
       /\.octane-chart-card\.octane-expanded \.octane-suite-column \{/);
-  assert.doesNotMatch(jelly, /\.octane-zone-focused \.octane-suite-column \{/);
+  assert.doesNotMatch(reportSource, /\.octane-zone-focused \.octane-suite-column \{/);
   assert.match(
-      jelly,
+      reportSource,
       /function expandCard\(card\) \{[\s\S]*?card\.classList\.add\("octane-expanded"\);[\s\S]*?scheduleFluidBarCharts\(\);/);
   assert.match(
-      jelly,
+      reportSource,
       /function removeExpandedState\(card\) \{[\s\S]*?card\.classList\.remove\("octane-expanded"\);[\s\S]*?scheduleFluidBarCharts\(\);/);
 });
 
 test("locks the overflow indicator to exactly 24 pixels", () => {
-  const indicatorRule = jelly
+  const indicatorRule = reportSource
       .split(".octane-bar-overflow-indicator {")[1]
       .split("}")[0];
 

@@ -17,6 +17,8 @@ import io.jenkins.plugins.octanesuitegatebyembiti.models.OctaneGateReportState;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.OctaneRiskHeatMap;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.OctaneRiskHeatMapNode;
 import io.jenkins.plugins.octanesuitegatebyembiti.models.StatusClassifier;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
@@ -28,6 +30,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.sf.json.JSONObject;
 import org.htmlunit.Page;
+import org.htmlunit.WebRequest;
+import org.htmlunit.WebResponse;
 import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlPage;
 import org.junit.jupiter.api.BeforeEach;
@@ -274,7 +278,7 @@ public class OctaneGateReportActionTest {
 
     HtmlPage page = jenkins.createWebClient().getPage(build, OctaneGateReportAction.URL_NAME);
     String text = page.asNormalizedText();
-    String xml = page.asXml();
+    String xml = reportSource(page);
     assertTrue(text.contains("Octane Gate Report"));
     assertTrue(text.contains("Passed"));
     assertTrue(text.contains("LAST UPDATED:"));
@@ -646,18 +650,15 @@ public class OctaneGateReportActionTest {
     assertTrue(xml.contains("height: var(--octane-control-size, 1.15rem)"));
     assertTrue(
         xml.contains(
-            ".octane-defect-face-header {\n          align-items: flex-start;\n"
-                + "          display: flex;"));
+            ".octane-defect-face-header {\n  align-items: flex-start;\n" + "  display: flex;"));
     assertTrue(xml.contains("flex-wrap: nowrap"));
     assertTrue(xml.contains("border-radius: 9999px"));
     assertTrue(xml.contains("padding: 2px"));
     assertTrue(xml.contains("display: inline-flex"));
     assertTrue(xml.contains("justify-content: center"));
-    assertTrue(xml.contains(".octane-defect-pane {\n          box-sizing: border-box;"));
-    assertTrue(xml.contains("grid-template-rows: minmax(0, 1fr);\n          height: 100%;"));
-    assertTrue(
-        xml.contains(
-            ".octane-defect-analytics {\n            grid-template-rows: minmax(0, 1fr);"));
+    assertTrue(xml.contains(".octane-defect-pane {\n  box-sizing: border-box;"));
+    assertTrue(xml.contains("grid-template-rows: minmax(0, 1fr);\n  height: 100%;"));
+    assertTrue(xml.contains(".octane-defect-analytics {\n    grid-template-rows: minmax(0, 1fr);"));
     assertTrue(
         xml.contains(
             ".octane-chart-card[data-card-key=\"progress-pass-rate\"][data-active-view=\"defects\"]"));
@@ -669,12 +670,11 @@ public class OctaneGateReportActionTest {
     assertTrue(xml.contains("octane-defect-trend-summary-card"));
     assertTrue(
         xml.contains(
-            ".octane-defect-trend-summary-card {\n          align-content: start;\n"
-                + "          background: transparent;\n          border: 0;"));
+            ".octane-defect-trend-summary-card {\n  align-content: start;\n"
+                + "  background: transparent;\n  border: 0;"));
     assertTrue(xml.contains("padding: 2px 0"));
-    assertTrue(xml.contains(".octane-defect-trend-value,\n        .octane-defect-density-value"));
-    assertTrue(
-        xml.contains(".octane-defect-trend-total-label,\n        .octane-defect-density-label"));
+    assertTrue(xml.contains(".octane-defect-trend-value,\n.octane-defect-density-value"));
+    assertTrue(xml.contains(".octane-defect-trend-total-label,\n.octane-defect-density-label"));
     assertTrue(xml.contains("octane-defect-trend-line-opened"));
     assertTrue(xml.contains("octane-defect-trend-line-closed"));
     assertTrue(xml.contains("octane-defect-trend-axis-title"));
@@ -878,11 +878,11 @@ public class OctaneGateReportActionTest {
     assertTrue(
         xml.contains(
             ".octane-management-state-bars {\n"
-                + "          --octane-management-bar-gap: clamp(2px, 1cqw, 40px);"));
+                + "  --octane-management-bar-gap: clamp(2px, 1cqw, 40px);"));
     assertTrue(
         xml.contains(
             ".octane-management-failure-chart {\n"
-                + "          --octane-management-bar-gap: clamp(2px, 1cqw, 40px);"));
+                + "  --octane-management-bar-gap: clamp(2px, 1cqw, 40px);"));
     assertTrue(xml.contains("overflow-x: auto"));
     assertTrue(xml.contains("grid-template-rows: minmax(0, 1fr) var(--octane-axis-label-row)"));
     assertFalse(xml.contains(".octane-zone-focused .octane-suite-column"));
@@ -1265,7 +1265,7 @@ public class OctaneGateReportActionTest {
     OctaneGateReportAction.attachTo(build, request);
 
     HtmlPage page = jenkins.createWebClient().getPage(build, OctaneGateReportAction.URL_NAME);
-    String xml = page.asXml();
+    String xml = reportSource(page);
     assertFalse(xml.contains("http-equiv=\"refresh\""));
     assertTrue(xml.contains("data-report-building=\"true\""));
     assertTrue(xml.contains("window.fetch(snapshotUrl"));
@@ -1409,7 +1409,7 @@ public class OctaneGateReportActionTest {
             StatusClassifier.DEFAULT_RUNNING_STATUSES));
 
     HtmlPage page = jenkins.createWebClient().getPage(build, OctaneGateReportAction.URL_NAME);
-    String xml = page.asXml();
+    String xml = reportSource(page);
 
     assertTrue(xml.contains("data-job-state-label=\"In Progress\""));
     assertTrue(xml.contains("data-extended-time=\"true\""));
@@ -1476,6 +1476,41 @@ public class OctaneGateReportActionTest {
     JSONObject payload = JSONObject.fromObject(jsonPage.getWebResponse().getContentAsString());
     assertTrue(payload.getBoolean("manualExitRequested"));
     assertEquals(requestedAt, payload.getLong("manualExitRequestedAtMillis"));
+  }
+
+  private String reportSource(HtmlPage page) throws Exception {
+    String markup = page.asXml();
+    assertFalse(markup.contains("function auditSelectedAxes"));
+    assertFalse(markup.contains("--octane-system-green:"));
+    HtmlElement stylesheet =
+        page.getFirstByXPath("//head/link[contains(@href, '/css/octane-dashboard.css')]");
+    HtmlElement script =
+        page.getFirstByXPath("//script[contains(@src, '/js/octane-dashboard.js')]");
+    assertNotNull(stylesheet, "Dashboard stylesheet must be linked in the head");
+    assertNotNull(script, "Dashboard script must be external");
+    assertTrue(markup.indexOf("testManagementScript") < markup.indexOf(script.getAttribute("src")));
+    return markup
+        + "\n"
+        + assertExternalAsset(
+            page, stylesheet.getAttribute("href"), "/css/octane-dashboard.css", "text/css")
+        + "\n"
+        + assertExternalAsset(
+            page, script.getAttribute("src"), "/js/octane-dashboard.js", "javascript");
+  }
+
+  private String assertExternalAsset(HtmlPage page, String url, String resource, String contentType)
+      throws Exception {
+    WebResponse asset =
+        page.getWebClient().loadWebResponse(new WebRequest(page.getFullyQualifiedUrl(url)));
+    assertEquals(200, asset.getStatusCode());
+    assertEquals("nosniff", asset.getResponseHeaderValue("X-Content-Type-Options"));
+    assertTrue(asset.getContentType().contains(contentType));
+    String source = asset.getContentAsString();
+    try (InputStream expected = getClass().getResourceAsStream(resource)) {
+      assertNotNull(expected, "Missing packaged asset " + resource);
+      assertEquals(new String(expected.readAllBytes(), StandardCharsets.UTF_8), source);
+    }
+    return source;
   }
 
   private void assertBarPopupInteractions(HtmlPage page) {

@@ -8,19 +8,14 @@ import {join} from "node:path";
 import test from "node:test";
 import {pathToFileURL} from "node:url";
 
-const jellyPath =
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-    + "OctaneGateReportAction/index.jelly";
-const jelly = readFileSync(jellyPath, "utf8");
-const styleMatch = jelly.match(/<style>([\s\S]*?)<\/style>/);
-assert.ok(styleMatch, "The report page must contain its dashboard stylesheet");
-const metricLabelSource = jelly
+import {reportSource, dashboardCss} from "./report-assets.mjs";
+const metricLabelSource = reportSource
     .split("/* OCTANE_TEST_METRIC_LABELS_START */")[1]
     .split("/* OCTANE_TEST_METRIC_LABELS_END */")[0];
-const activityRingLayoutSource = jelly
+const activityRingLayoutSource = reportSource
     .split("/* OCTANE_ACTIVITY_RING_LAYOUT_START */")[1]
     .split("/* OCTANE_ACTIVITY_RING_LAYOUT_END */")[0];
-const activityRingUpdateSource = jelly
+const activityRingUpdateSource = reportSource
     .split("/* OCTANE_ACTIVITY_RING_UPDATE_START */")[1]
     .split("/* OCTANE_ACTIVITY_RING_UPDATE_END */")[0];
 
@@ -631,7 +626,7 @@ function fixtureHtml() {
           }
           html, body { margin: 0; min-height: 100%; }
           body { background: #101218; box-sizing: border-box; padding: 0.5rem; }
-          ${styleMatch[1]}
+          ${dashboardCss}
           .octane-dashboard { margin-top: 0; }
         </style>
       </head>

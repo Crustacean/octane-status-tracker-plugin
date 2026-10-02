@@ -17,6 +17,8 @@ public class OctaneReportSecurityHeadersTest {
   public void coversEveryReportRouteWithoutChangingDispatchOrTrustingForwardingHeaders() {
     for (String path :
         List.of(
+            "/adjuncts/abc/css/octane-dashboard.css",
+            "/adjuncts/abc/js/octane-dashboard.js",
             "/job/demo/1/octaneSuiteGateReport",
             "/job/demo/1/octaneSuiteGateReport/",
             "/job/demo/1/octaneSuiteGateReport/data",
@@ -48,6 +50,8 @@ public class OctaneReportSecurityHeadersTest {
             "/login",
             "/job/demo/",
             "/octaneSuiteGateReportOther/data",
+            "/adjuncts/abc/js/other.js",
+            "/adjuncts/abc/js/octane-dashboard.js/other",
             "/plugin/other-plugin/js/script.js",
             "/plugin/octane-status-tracker-other/js/script.js",
             "/static/abc/plugin/other-plugin/js/script.js")) {

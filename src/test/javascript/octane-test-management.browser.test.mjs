@@ -7,11 +7,8 @@ import test from "node:test";
 import {pathToFileURL} from "node:url";
 
 const source = readFileSync("src/main/webapp/js/octane-test-management.js", "utf8");
-const jelly = readFileSync(
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-        + "OctaneGateReportAction/index.jelly",
-    "utf8");
-const hiddenDefectRowsRule = jelly.match(
+import {reportSource} from "./report-assets.mjs";
+const hiddenDefectRowsRule = reportSource.match(
     /\.octane-management-defect-row\[hidden\],[\s\S]*?\{\s*display:\s*none;\s*\}/)?.[0] || "";
 const chromiumAvailable =
     spawnSync("sh", ["-c", "command -v google-chrome"], {stdio: "ignore"}).status === 0;

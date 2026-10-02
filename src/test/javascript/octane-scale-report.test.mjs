@@ -6,10 +6,7 @@ import test from "node:test";
 const require = createRequire(import.meta.url);
 const renderer = require("../../main/webapp/js/octane-scale-report.js");
 const source = readFileSync("src/main/webapp/js/octane-scale-report.js", "utf8");
-const jelly = readFileSync(
-    "src/main/resources/io/jenkins/plugins/octanesuitegatebyembiti/actions/"
-        + "OctaneGateReportAction/index.jelly",
-    "utf8");
+import {reportSource} from "./report-assets.mjs";
 const emailRenderer = readFileSync(
     "src/main/java/io/jenkins/plugins/octanesuitegatebyembiti/services/"
         + "OctaneReportZoneHtmlRenderer.java",
@@ -34,8 +31,8 @@ test("rotates and bounds dense x-axis labels from measured slot width", () => {
   assert.equal(renderer.truncateAxisLabel("Long tester identity", 6), "Long \u2026");
   assert.match(source, /label\.setAttribute\("text-anchor", labelLayout\.rotation === 0/);
   assert.match(source, /rotate\(" \+ labelLayout\.rotation/);
-  assert.match(jelly, /function applyFluidAxisLabelLayout\(container, layout\)/);
-  assert.match(jelly, /data-axis-label-rotation/);
+  assert.match(reportSource, /function applyFluidAxisLabelLayout\(container, layout\)/);
+  assert.match(reportSource, /data-axis-label-rotation/);
 });
 
 test("reserves exactly twenty-four pixels for the concise overflow marker", () => {
@@ -49,9 +46,9 @@ test("audits adaptive axes in the required uppercase console format", () => {
       renderer.selectedAxesAuditMessage("Status", "Count"),
       "SELECTED AXES: X: STATUS, Y: COUNT");
   assert.match(source, /console\.log\(selectedAxesAuditMessage\(xAxis, yAxis\)\)/);
-  assert.match(jelly, /SELECTED AXES: X: /);
-  assert.match(jelly, /xAxis\.toUpperCase\(\)/);
-  assert.match(jelly, /yAxis\.toUpperCase\(\)/);
+  assert.match(reportSource, /SELECTED AXES: X: /);
+  assert.match(reportSource, /xAxis\.toUpperCase\(\)/);
+  assert.match(reportSource, /yAxis\.toUpperCase\(\)/);
 });
 
 test("status-grouped charts do not create tooltip targets or payloads", () => {
@@ -59,8 +56,8 @@ test("status-grouped charts do not create tooltip targets or payloads", () => {
   assert.match(
       source,
       /section\.tooltipsEnabled !== false[\s\S]*?octane-vertical-bar octane-client-bar-hit-target[\s\S]*?: "octane-client-bar-hit-target"/);
-  assert.match(jelly, /data-tooltips-enabled="\$\{section\.tooltipsEnabled\}"/);
-  assert.match(jelly, /<j:if test="\$\{section\.tooltipsEnabled\}">/);
+  assert.match(reportSource, /data-tooltips-enabled="\$\{section\.tooltipsEnabled\}"/);
+  assert.match(reportSource, /<j:if test="\$\{section\.tooltipsEnabled\}">/);
 });
 
 test("uses delegated safe DOM rendering without per-bar tooltip trees", () => {
@@ -139,9 +136,9 @@ test("renders a centered total and rigid percentage legend without callouts", ()
 test("binds per-bar automation usage for the delegated hover tooltip", () => {
   assert.match(source, /data-automation-percentage/);
   assert.match(source, /data-automation-emoji/);
-  assert.match(jelly, /data-automation-percentage="\$\{suiteRun\.automationPercentage\}"/);
-  assert.match(jelly, /automationValue\.textContent/);
-  assert.match(jelly, /octane-bar-popup-automation/);
+  assert.match(reportSource, /data-automation-percentage="\$\{suiteRun\.automationPercentage\}"/);
+  assert.match(reportSource, /automationValue\.textContent/);
+  assert.match(reportSource, /octane-bar-popup-automation/);
 });
 
 test("stamps active dashboard counts as In Progress without incrementing Skipped", () => {
@@ -171,7 +168,7 @@ test("stamps active dashboard counts as In Progress without incrementing Skipped
   assert.equal(attributes.get("data-status-running-label"), "In Progress");
   assert.equal(attributes.get("data-status-in-progress-count"), "1");
   assert.equal(attributes.get("data-status-in-progress-label"), "In Progress");
-  assert.match(jelly, /statusMetricForColumn\(column, "running", "In Progress"\)/);
+  assert.match(reportSource, /statusMetricForColumn\(column, "running", "In Progress"\)/);
 });
 
 test("uses enlarged donut geometry without fixed live or email caps", () => {
@@ -185,15 +182,15 @@ test("uses enlarged donut geometry without fixed live or email caps", () => {
       1.6);
   assert.match(source, /DONUT_HOLE_RADIUS = 37\.36/);
   assert.match(source, /hole\.setAttribute\("r", String\(DONUT_HOLE_RADIUS\)\)/);
-  assert.match(jelly, /octane-donut-hole" cx="50" cy="50" r="37\.36"/);
-  assert.match(jelly, /\.octane-donut\s*\{[\s\S]*?aspect-ratio: 1 \/ 1;/);
-  assert.match(jelly, /\.octane-donut-wrap\s*\{[\s\S]*?container-type: size;/);
-  assert.match(jelly, /\.octane-donut\s*\{[\s\S]*?height: min\(100cqw, 100cqh\);/);
-  assert.match(jelly, /\.octane-donut\s*\{[\s\S]*?max-height: none;/);
-  assert.match(jelly, /\.octane-donut\s*\{[\s\S]*?max-width: none;/);
-  assert.match(jelly, /\.octane-donut\s*\{[\s\S]*?width: min\(100cqw, 100cqh\);/);
-  assert.doesNotMatch(jelly, /max-height: 248\.1804px/);
-  assert.doesNotMatch(jelly, /max-width: 248\.1804px/);
+  assert.match(reportSource, /octane-donut-hole" cx="50" cy="50" r="37\.36"/);
+  assert.match(reportSource, /\.octane-donut\s*\{[\s\S]*?aspect-ratio: 1 \/ 1;/);
+  assert.match(reportSource, /\.octane-donut-wrap\s*\{[\s\S]*?container-type: size;/);
+  assert.match(reportSource, /\.octane-donut\s*\{[\s\S]*?height: min\(100cqw, 100cqh\);/);
+  assert.match(reportSource, /\.octane-donut\s*\{[\s\S]*?max-height: none;/);
+  assert.match(reportSource, /\.octane-donut\s*\{[\s\S]*?max-width: none;/);
+  assert.match(reportSource, /\.octane-donut\s*\{[\s\S]*?width: min\(100cqw, 100cqh\);/);
+  assert.doesNotMatch(reportSource, /max-height: 248\.1804px/);
+  assert.doesNotMatch(reportSource, /max-width: 248\.1804px/);
   assert.match(emailRenderer, /r=\\?"37\.36\\?"/);
   assert.match(emailRenderer, /\.octane-donut-wrap \{[\s\S]*?container-type: size;/);
   assert.match(emailRenderer, /\.octane-donut \{[\s\S]*?height: min\(100cqw, 100cqh\);/);
