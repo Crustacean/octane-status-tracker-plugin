@@ -224,6 +224,8 @@ public class OctaneGateReportAction implements RunAction2, OctaneGateReportPubli
     return rootUrl == null ? buildPath : rootUrl + buildPath;
   }
 
+  // Item.READ-protected view of published data; never polls Octane or changes gate state.
+  @SuppressWarnings("lgtm[jenkins/csrf]")
   public void doSnapshot(StaplerRequest2 request, StaplerResponse2 response) throws IOException {
     setJsonSecurityHeaders(request, response);
     checkReadPermission();
@@ -293,6 +295,8 @@ public class OctaneGateReportAction implements RunAction2, OctaneGateReportPubli
     OctaneReportJson.writeTo(response.getWriter(), payload);
   }
 
+  // Item.READ-protected local artifact read with bounded pagination; no poll or mutation.
+  @SuppressWarnings("lgtm[jenkins/csrf]")
   public void doData(
       StaplerRequest2 request,
       StaplerResponse2 response,
@@ -336,6 +340,8 @@ public class OctaneGateReportAction implements RunAction2, OctaneGateReportPubli
     OctaneReportJson.writeTo(response.getWriter(), body);
   }
 
+  // Item.READ-protected fixed classpath script; GET is required by script loading.
+  @SuppressWarnings("lgtm[jenkins/csrf]")
   public void doScaleReportScript(StaplerRequest2 request, StaplerResponse2 response)
       throws IOException {
     setResponseSecurityHeaders(request, response);
@@ -353,6 +359,8 @@ public class OctaneGateReportAction implements RunAction2, OctaneGateReportPubli
     }
   }
 
+  // Item.READ-protected fixed classpath script; GET is required by script loading.
+  @SuppressWarnings("lgtm[jenkins/csrf]")
   public void doTestManagementScript(StaplerRequest2 request, StaplerResponse2 response)
       throws IOException {
     setResponseSecurityHeaders(request, response);

@@ -50,7 +50,10 @@ public final class OctaneEmailDeliveryCoordinator {
   }
 
   public static final class Lease implements AutoCloseable {
+    // In-memory build ID + workspace path for locking; not serialized or used to authenticate.
+    @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
     private final String key;
+
     private final Entry entry;
     private boolean closed;
 

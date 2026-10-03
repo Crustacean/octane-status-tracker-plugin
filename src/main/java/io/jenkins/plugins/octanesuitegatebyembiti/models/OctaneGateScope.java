@@ -92,6 +92,8 @@ public class OctaneGateScope implements Describable<OctaneGateScope>, Serializab
       return "Octane gate scope";
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckName(@QueryParameter String value) {
       if (Util.isBlank(value)) {
         return FormValidation.error("Scope name is required.");
@@ -99,11 +101,15 @@ public class OctaneGateScope implements Describable<OctaneGateScope>, Serializab
       return FormValidation.ok();
     }
 
+    // Checks submitted selector/query syntax only; does not query Octane or save a scope.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSuiteRunId(
         @QueryParameter String value, @QueryParameter String query) {
       return checkScopeSource(value, query);
     }
 
+    // Checks submitted selector/query syntax only; does not query Octane or save a scope.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckQuery(
         @QueryParameter String value, @QueryParameter String suiteRunId) {
       return checkScopeSource(suiteRunId, value);

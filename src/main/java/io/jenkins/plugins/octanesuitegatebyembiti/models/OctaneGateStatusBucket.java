@@ -8,7 +8,11 @@ public enum OctaneGateStatusBucket {
   RUNNING("In Progress", "running", "var(--octane-status-no-run)", "#8E8E93");
 
   private final String label;
+
+  // Public enum identifier used in chart data attributes (passed, failed, etc.).
+  @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
   private final String dataKey;
+
   private final String color;
   private final String tooltipColor;
 

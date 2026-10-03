@@ -489,6 +489,8 @@ public class OctaneEmailReportStep extends AbstractOctaneEmailStep {
       return Set.of(Run.class, FilePath.class, Launcher.class, TaskListener.class);
     }
 
+    // Fixed public options only; no configuration/credentials lookup or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public ListBoxModel doFillOnFailureItems() {
       ListBoxModel model = new ListBoxModel();
       model.add("Mark build unstable and continue", OctaneEmailFailureMode.UNSTABLE.name());
@@ -497,6 +499,8 @@ public class OctaneEmailReportStep extends AbstractOctaneEmailStep {
       return model;
     }
 
+    // Fixed public options only; no configuration/credentials lookup or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public ListBoxModel doFillThemeItems() {
       ListBoxModel model = new ListBoxModel();
       model.add("Light", OctaneReportTheme.LIGHT.name());
@@ -505,26 +509,38 @@ public class OctaneEmailReportStep extends AbstractOctaneEmailStep {
       return model;
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTo(@QueryParameter String value) {
       return checkOptionalRecipients("To", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckCc(@QueryParameter String value) {
       return checkOptionalRecipients("Cc", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBcc(@QueryParameter String value) {
       return checkOptionalRecipients("Bcc", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckFrom(@QueryParameter String value) {
       return checkOptionalRecipients("From", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckReplyTo(@QueryParameter String value) {
       return checkOptionalRecipients("Reply-To", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckOnFailure(@QueryParameter String value) {
       try {
         OctaneEmailFailureMode.from(value);
@@ -534,6 +550,8 @@ public class OctaneEmailReportStep extends AbstractOctaneEmailStep {
       }
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTheme(@QueryParameter String value) {
       try {
         OctaneReportTheme.from(value);
@@ -543,6 +561,8 @@ public class OctaneEmailReportStep extends AbstractOctaneEmailStep {
       }
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckViewportWidth(@QueryParameter String value) {
       try {
         int width = Integer.parseInt(value);

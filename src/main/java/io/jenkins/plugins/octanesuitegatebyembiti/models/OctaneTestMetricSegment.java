@@ -12,7 +12,11 @@ public final class OctaneTestMetricSegment implements Serializable {
   private final String shortLabel;
   private final int count;
   private final double percentage;
+
+  // Public severity/color identifier used in report JSON and CSS.
+  @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
   private final String severityKey;
+
   private final int severityRank;
 
   public OctaneTestMetricSegment(

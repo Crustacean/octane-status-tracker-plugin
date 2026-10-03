@@ -54,7 +54,11 @@ public class GateRequest implements Serializable {
   private boolean riskHeatMap;
   private String riskHeatMapDefectQuery = "";
   private int riskHeatMapMaxDefects = DEFAULT_RISK_HEAT_MAP_MAX_DEFECTS;
+
+  // Test outcome names used by StatusClassifier, not authentication material.
+  @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
   private String passedStatuses = StatusClassifier.DEFAULT_PASSED_STATUSES;
+
   private String failedStatuses = StatusClassifier.DEFAULT_FAILED_STATUSES;
   private String neutralStatuses = StatusClassifier.DEFAULT_NEUTRAL_STATUSES;
   private String runningStatuses = StatusClassifier.DEFAULT_RUNNING_STATUSES;

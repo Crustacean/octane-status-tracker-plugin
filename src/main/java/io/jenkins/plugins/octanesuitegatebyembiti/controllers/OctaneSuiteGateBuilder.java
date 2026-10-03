@@ -326,6 +326,8 @@ public class OctaneSuiteGateBuilder extends Builder implements SimpleBuildStep {
       return "ALM Octane Suite Gate";
     }
 
+    // Checks only path syntax; does not read the workspace or controller filesystem.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSpacesMappingFile(@QueryParameter String value) {
       try {
         OctaneSpaceMappingResolver.normalizeMappingFile(value);
@@ -335,50 +337,74 @@ public class OctaneSuiteGateBuilder extends Builder implements SimpleBuildStep {
       }
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSharedSpaceName(@QueryParameter String value) {
       return checkRequiredMappingSelector("Shared space", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckWorkspaceName(@QueryParameter String value) {
       return checkRequiredMappingSelector("Workspace", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSuiteRunId(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckSuiteRunId(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSharedSpaceId(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckSharedSpaceId(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckWorkspaceId(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckWorkspaceId(value);
     }
 
+    // Parses submitted criteria with bounded length, tokens, and depth; never evaluates them.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckCriteria(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckCriteria(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckPollIntervalSeconds(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckPollIntervalSeconds(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTimeoutMinutes(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckTimeoutMinutes(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTimeoutMinutesExtended(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckTimeoutMinutesExtended(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBasePassrateFigure(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckBasePassrateFigure(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBaseExecutionFigure(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckBaseExecutionFigure(value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckRiskHeatMapMaxDefects(@QueryParameter String value) {
       return new OctaneSuiteGateStep.DescriptorImpl().doCheckRiskHeatMapMaxDefects(value);
     }

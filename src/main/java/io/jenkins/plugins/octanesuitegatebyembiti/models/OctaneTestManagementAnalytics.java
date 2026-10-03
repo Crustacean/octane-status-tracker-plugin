@@ -1077,7 +1077,10 @@ public final class OctaneTestManagementAnalytics implements Serializable {
   public static final class FailureCategory implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    // Public category slug used to match failure bars and defect-list tabs.
+    @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
     private final String key;
+
     private final String label;
     private final List<DefectDetail> defects;
 
@@ -1152,7 +1155,11 @@ public final class OctaneTestManagementAnalytics implements Serializable {
     private final String description;
     private final String severity;
     private final String severityLabel;
+
+    // Public severity palette identifier, not a credential.
+    @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
     private final String severityColorKey;
+
     private final int severitySortRank;
     private final String status;
     private final String category;
@@ -1382,7 +1389,10 @@ public final class OctaneTestManagementAnalytics implements Serializable {
   public static final class MetricQuadrant implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    // Public metric identifier such as defect-compliance or tester-volume.
+    @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
     private final String key;
+
     private final String title;
     private final String value;
     private final String detail;

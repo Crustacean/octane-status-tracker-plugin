@@ -10,7 +10,10 @@ import java.util.Map;
 public class OctaneTestMetricCard implements Serializable {
   private static final long serialVersionUID = 1L;
 
+  // Public report-card identifier, not an API key or other secret.
+  @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
   private final String key;
+
   private final String title;
   private final String value;
   private final String detail;

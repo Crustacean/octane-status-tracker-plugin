@@ -66,7 +66,11 @@ public class OctaneSuiteGateStep extends Step {
   private boolean riskHeatMap;
   private String riskHeatMapDefectQuery = "";
   private int riskHeatMapMaxDefects = GateRequest.DEFAULT_RISK_HEAT_MAP_MAX_DEFECTS;
+
+  // Test outcome names (for example Passed), not passwords or credentials.
+  @SuppressWarnings("lgtm[jenkins/plaintext-storage]")
   private String passedStatuses = StatusClassifier.DEFAULT_PASSED_STATUSES;
+
   private String failedStatuses = StatusClassifier.DEFAULT_FAILED_STATUSES;
   private String neutralStatuses = StatusClassifier.DEFAULT_NEUTRAL_STATUSES;
   private String runningStatuses = StatusClassifier.DEFAULT_RUNNING_STATUSES;
@@ -693,6 +697,8 @@ public class OctaneSuiteGateStep extends Step {
       return Set.of(EnvVars.class, Run.class, TaskListener.class);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckServerId(@QueryParameter String value) {
       if (Util.isBlank(value)) {
         return FormValidation.error("Server ID is required.");
@@ -700,6 +706,8 @@ public class OctaneSuiteGateStep extends Step {
       return FormValidation.ok();
     }
 
+    // Parses only the submitted URI; no connection, DNS lookup, or configuration access.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBaseUrl(@QueryParameter String value) {
       try {
         OctaneServerUrl.normalize(value);
@@ -709,6 +717,8 @@ public class OctaneSuiteGateStep extends Step {
       }
     }
 
+    // Checks only submitted text; does not enumerate or resolve Jenkins credentials.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckCredentialsId(@QueryParameter String value) {
       if (Util.isBlank(value)) {
         return FormValidation.error("API credential ID is required.");
@@ -716,6 +726,8 @@ public class OctaneSuiteGateStep extends Step {
       return FormValidation.ok();
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSuiteRunId(@QueryParameter String value) {
       try {
         SuiteRunSelector selector = SuiteRunSelector.parse(value);
@@ -729,14 +741,20 @@ public class OctaneSuiteGateStep extends Step {
       return FormValidation.ok();
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckSharedSpaceId(@QueryParameter String value) {
       return checkRequiredNumber("Shared space ID", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckWorkspaceId(@QueryParameter String value) {
       return checkRequiredNumber("Workspace ID", value);
     }
 
+    // Parses submitted criteria with bounded length, tokens, and depth; never evaluates them.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckCriteria(@QueryParameter String value) {
       try {
         CriteriaExpression.parse(Util.isBlank(value) ? GateRequest.DEFAULT_CRITERIA : value);
@@ -746,14 +764,20 @@ public class OctaneSuiteGateStep extends Step {
       }
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckPollIntervalSeconds(@QueryParameter String value) {
       return checkBoundedInteger("Poll interval", value, 1, GateRequest.MAX_POLL_INTERVAL_SECONDS);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTimeoutMinutes(@QueryParameter String value) {
       return checkBoundedInteger("Timeout", value, 1, GateRequest.MAX_TIMEOUT_MINUTES);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTimeoutMinutesExtended(@QueryParameter String value) {
       if (Util.isBlank(value)) {
         return FormValidation.ok();
@@ -761,14 +785,20 @@ public class OctaneSuiteGateStep extends Step {
       return checkBoundedInteger("Extended timeout", value, 0, GateRequest.MAX_TIMEOUT_MINUTES);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBasePassrateFigure(@QueryParameter String value) {
       return checkPercentage("Base pass rate", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckBaseExecutionFigure(@QueryParameter String value) {
       return checkPercentage("Base execution", value);
     }
 
+    // Validates only submitted values; no private data access, I/O, or state changes.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckRiskHeatMapMaxDefects(@QueryParameter String value) {
       return checkBoundedInteger(
           "Risk heat map max defects", value, 1, GateRequest.MAX_RISK_HEAT_MAP_DEFECTS);

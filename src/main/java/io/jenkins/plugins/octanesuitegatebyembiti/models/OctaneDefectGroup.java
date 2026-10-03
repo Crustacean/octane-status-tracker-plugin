@@ -112,6 +112,8 @@ public class OctaneDefectGroup implements Describable<OctaneDefectGroup>, Serial
       return "Octane defect group";
     }
 
+    // Validates a temporary group using submitted values and built-in severity names only.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckName(@QueryParameter String value) {
       OctaneDefectGroup group = new OctaneDefectGroup(value);
       group.setTypes("Critical");
@@ -119,6 +121,8 @@ public class OctaneDefectGroup implements Describable<OctaneDefectGroup>, Serial
       return error.isEmpty() ? FormValidation.ok() : FormValidation.error(error);
     }
 
+    // Validates a temporary group using submitted values and built-in severity names only.
+    @SuppressWarnings({"lgtm[jenkins/no-permission-check]", "lgtm[jenkins/csrf]"})
     public FormValidation doCheckTypes(@QueryParameter String value, @QueryParameter String name) {
       OctaneDefectGroup group = new OctaneDefectGroup(name);
       group.setTypes(value);
